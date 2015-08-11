@@ -166,3 +166,19 @@ function pmpro_slack_validate($input) {
 		
 	return $options;
 }
+
+/*
+Function to add links to the plugin row meta
+*/
+function pmpro_slack_plugin_row_meta($links, $file) {
+	if(strpos($file, 'pmpro-slack.php') !== false)
+	{
+		$new_links = array(
+			'<a href="' . esc_url('http://www.paidmembershipspro.com/add-ons/plus/pmpro-slack/')  . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url('http://paidmembershipspro.com/support/') . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+		);
+		$links = array_merge($links, $new_links);
+	}
+	return $links;
+}
+add_filter('plugin_row_meta', 'pmpro_slack_plugin_row_meta', 10, 2);

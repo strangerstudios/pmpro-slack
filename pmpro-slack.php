@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Paid Memberships Pro Slack Notifications
+ * Plugin Name: Paid Memberships Pro - Slack Notifications
  * Description: Slack notifications for the Paid Memberships Pro plugin
  * Author: Nikhil Vimal
  * Author URI: http://nik.techvoltz.com
@@ -26,9 +26,13 @@ function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
 	$levelstuff = $current_user->membership_level;
 	$levelCost = $levelstuff->initial_payment;
 
-	$options = get_option('pmpro-slack-hook');
-	$webhook_url = $options['pmpro_slack_hook'];
-
+	$options = get_option( 'pmpro_slack' );
+	$webhook_url = $options['webhook'];
+	$levels = $options['levels'];
+		
+	// Only if this level is in the array.
+	if(!in_array($level->id, $levels))
+		return;
 
 	// Check that webhook exists in the settings page
 	if ( $webhook_url !== "" ) {
@@ -44,12 +48,12 @@ function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
 					)
 				),
 			);
-
-
+			
 			$output  = 'payload=' . json_encode( $payload );
 			$response = wp_remote_post( $webhook_url, array(
 				'body' => $output,
 			) );
+						
 			if ( is_wp_error( $response ) ) {
 				$error_message = $response->get_error_message();
 				echo "Something went wrong: $error_message";
@@ -64,7 +68,7 @@ function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
 		 *
 		 * @since 0.3.0
 		 */
-		do_action('pmpro_slack_sent', $response);
+		do_action('pmpro_slack_sent', $response);		
 	}
 }
 
@@ -77,8 +81,8 @@ add_action( 'admin_menu', 'pmpro_slack_integration_menu' );
  */
 function pmpro_slack_integration_menu() {
 	add_options_page(
-		__( 'Paid Memberships Pro Slack Integration', 'ninja-forms-slack' ),
-		__( 'Paid Memberships Pro Slack Integration', 'ninja-forms-slack' ),
+		__( 'PMPro Slack', 'pmpro-slack' ),
+		__( 'PMPro Slack', 'pmpro-slack' ),
 		'manage_options',
 		'pmpro_slack',
 		'pmpro_slack_integration_options_page'
@@ -100,9 +104,10 @@ function pmpro_slack_integration_options_page() {
 add_action('admin_init', 'pmpro_slack_admin_init');
 function pmpro_slack_admin_init(){
 
-	register_setting( 'pmpro-slack-group', 'pmpro-slack-hook', 'pmpro_slack_validate' );
+	register_setting( 'pmpro-slack-group', 'pmpro_slack', 'pmpro_slack_validate' );
 	add_settings_section( 'pmpro-slack-section', 'Slack Settings', 'pmpro_slack_section_callback', 'pmpro-slack' );
-	add_settings_field( 'pmpro_slack_field', 'Webhook URL', 'pmpro_slack_field_callback', 'pmpro-slack', 'pmpro-slack-section' );
+	add_settings_field( 'pmpro_slack_webhook', 'Webhook URL', 'pmpro_slack_webhook_callback', 'pmpro-slack', 'pmpro-slack-section' );
+	add_settings_field( 'pmpro_slack_levels', 'Levels', 'pmpro_slack_levels_callback', 'pmpro-slack', 'pmpro-slack-section' );
 }
 function pmpro_slack_section_callback() {
 	echo '<ol>
@@ -112,23 +117,52 @@ function pmpro_slack_section_callback() {
 		<li>Copy the URL for the webhook</li>
 		<li>Paste the URL into the field below and click submit</li>
 		</ol>';
-	$roles = pmpro_getAllLevels(true, true);
+	
+	/*
+	$roles = pmpro_getAllLevels(true, true);	
 	foreach ($roles as $stud) {
 
 		echo $stud;
 	}
+	*/
+}
 
+//webhook option
+function pmpro_slack_webhook_callback() {
+	$options = get_option( 'pmpro_slack' );
+		
+	echo '<input type="url" id="webhook" name="pmpro_slack[webhook]" value="' . esc_url( $options[ 'webhook' ] ) . '" />';
 }
-function pmpro_slack_field_callback() {
-	$setting = get_option( 'pmpro-slack-hook' );
-	echo '<input type="url" id="pmpro-slack-hook" name="pmpro-slack-hook[pmpro_slack_hook]" value="' . esc_url( $setting[ 'pmpro_slack_hook' ] ) . '" />';
-}
-//
-function pmpro_slack_validate($input) {
-	$options = get_option('pmpro-slack-hook');
-	$options['pmpro_slack_hook'] = trim($input['pmpro_slack_hook']);
-	if(!preg_match('/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $options['pmpro_slack_hook'])) {
-		$options['pmpro_slack_hook'] = '';
+
+//levels option
+function pmpro_slack_levels_callback() {
+	$options = get_option( 'pmpro_slack' );
+	$levels = pmpro_getAllLevels(true, true);
+		
+	echo "<p>Which levels should notifications be sent for?</p>";
+	echo "<select multiple='yes' name=\"pmpro_slack[levels][]\">";			
+	foreach($levels as $level)
+	{
+		echo "<option value='" . $level->id . "' ";
+		if(in_array($level->id, $options['levels']))
+			echo "selected='selected'";
+		echo ">" . $level->name . "</option>";
 	}
+	echo "</select>";
+}
+
+//validate fields
+function pmpro_slack_validate($input) {
+	$options = get_option( 'pmpro_slack' );
+	
+	$options['webhook'] = trim($input['webhook']);
+	if(!preg_match('/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $options['webhook'])) {
+		$options['webhook'] = '';
+	}
+	
+	$options['levels'] = $input['levels'];
+	for($i = 0; $i < count($options['levels']); $i++)
+		$options['levels'][$i] = intval($options['levels'][$i]);
+		
 	return $options;
 }

@@ -9,22 +9,20 @@
  * License: GNU GPLv2+
  */
 
-add_action( 'pmpro_after_change_membership_level', 'pmpro_change_membership_slack_integration', 10, 2);
+add_action( 'pmpro_after_checkout', 'pmpro_slack_pmpro_after_checkout', 10, 2);
 
 /**
  * Main Slack Integration Function
  *
- * @param $level_id
- * @param $user_id
+  * @param $user_id
  *
  * @since 1.0
  */
-function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
+ 
+function pmpro_slack_pmpro_after_checkout( $user_id ) {
 
 	$level = pmpro_getMembershipLevelForUser($user_id);
-	$current_user = get_userdata( $user_id );
-	$levelstuff = $current_user->membership_level;
-	$levelCost = $levelstuff->initial_payment;
+	$current_user = get_userdata( $user_id );	
 
 	$options = get_option( 'pmpro_slack' );
 	$webhook_url = $options['webhook'];
@@ -38,17 +36,17 @@ function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
 	if ( $webhook_url !== "" ) {
 		if ( is_user_logged_in() ) {
 			$payload = array(
-				'text'        => 'A user has changed their membership level. ' . $current_user->user_email,
+				'text'        => 'New checkout: ' . $current_user->user_email,
 				'username'    => 'PMProBot',
 				'icon_emoji'  => ':credit_card:',
 				'attachments' => array(
 					'fields' => array(
 						'color' => '#8FB052',
-						'title' =>  $current_user->display_name . ' has signed up for membership level: ' . $level->name . ' ($' . $levelCost . ')',
+						'title' =>  $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')',			//Note: Can't use pmpro_formatPrice here because Slack doesn't like html entities
 					)
 				),
 			);
-			
+						
 			$output  = 'payload=' . json_encode( $payload );
 			$response = wp_remote_post( $webhook_url, array(
 				'body' => $output,
@@ -56,7 +54,7 @@ function pmpro_change_membership_slack_integration( $level_id, $user_id ) {
 						
 			if ( is_wp_error( $response ) ) {
 				$error_message = $response->get_error_message();
-				echo "Something went wrong: $error_message";
+				echo "Something went wrong: $error_message";				
 			}
 		}
 

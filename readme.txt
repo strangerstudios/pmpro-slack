@@ -1,6 +1,6 @@
-=== Paid Memberships Pro - Slack Notifications ===
+=== Paid Memberships Pro - Slack Integration ===
 Contributors: strangerstudios
-Tags: paid memberships pro, pmpro, mailchimp, email marketing
+Tags: paid memberships pro, pmpro, slack, notifications
 Requires at least: 3.5
 Tested up to: 4.2.4
 Stable tag: 1.0
@@ -9,7 +9,7 @@ Slack notifications for the Paid Memberships Pro plugin
 
 == Description ==
 
-Set your Slack webhook URL and choose which levels to send notifications to Slack for. Then when users change level on your site, notifications will show up in Slack.
+Set your Slack webhook URL and choose which levels to send notifications to Slack for. Then when users checkout on your site, notifications will show up in Slack.
 
 == Installation ==
 

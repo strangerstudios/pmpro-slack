@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: Paid Memberships Pro - Slack Notifications
- * Description: Slack notifications for the Paid Memberships Pro plugin
+ * Plugin Name: Paid Memberships Pro - Slack Integration
+ * Description: Slack integration for the Paid Memberships Pro plugin
  * Author: Nikhil Vimal
  * Author URI: http://nik.techvoltz.com
  * Version: 1.0

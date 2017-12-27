@@ -9,7 +9,10 @@
  * License: GNU GPLv2+
  */
 
-add_action( 'pmpro_after_checkout', 'pmpro_slack_pmpro_after_checkout', 10, 2);
+define('PMPROSLA_DIR', dirname(__FILE__));
+require_once(PMPROSLA_DIR . '/includes/slack_functions.php');
+
+add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2);
 
 /**
  * Main Slack Integration Function
@@ -19,12 +22,12 @@ add_action( 'pmpro_after_checkout', 'pmpro_slack_pmpro_after_checkout', 10, 2);
  * @since 1.0
  */
  
-function pmpro_slack_pmpro_after_checkout( $user_id ) {
+function pmprosla_pmpro_after_checkout( $user_id ) {
 
 	$level = pmpro_getMembershipLevelForUser($user_id);
 	$current_user = get_userdata( $user_id );	
 
-	$options = get_option( 'pmpro_slack' );
+	$options = get_option( 'pmprosla_data' );
 	$webhook_url = $options['webhook'];
 	$levels = $options['levels'];
 		
@@ -66,11 +69,11 @@ function pmpro_slack_pmpro_after_checkout( $user_id ) {
 		 *
 		 * @since 0.3.0
 		 */
-		do_action('pmpro_slack_sent', $response);		
+		do_action('pmprosla_sent', $response);		
 	}
 }
 
-add_action( 'admin_menu', 'pmpro_slack_integration_menu' );
+add_action( 'admin_menu', 'pmprosla_integration_menu' );
 
 
 /**
@@ -78,6 +81,7 @@ add_action( 'admin_menu', 'pmpro_slack_integration_menu' );
  *  for the level being edited
  */
 function pmprosla_membership_level_after_other_settings(){
+	$options = get_option( 'pmprosla_data' );
 	?>
 	<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
 	<table class="form-table">
@@ -87,8 +91,12 @@ function pmprosla_membership_level_after_other_settings(){
 				<td>
 					<?php
 						if( isset( $_REQUEST['edit'] ) ) {
-							$edit = intval( $_REQUEST['edit'] );
-							$pmprosla_enabled = get_option( 'pmprosla_enabled_' . $edit );
+							$level = intval( $_REQUEST['edit'] );
+							if(!empty($options['channel_add_settings'][$level.'_enabled'])){
+								$pmprosla_enabled = $options['channel_add_settings'][$level.'_enabled'];
+							} else {
+								$pmprosla_enabled = false;
+							}
 						} else {
 							$pmprosla_enabled = false;
 						}
@@ -103,9 +111,14 @@ function pmprosla_membership_level_after_other_settings(){
 				<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php _e('Channels:', 'paid-memberships-pro'); ?></label></th>
 				<td>
 					<?php
+						$channels = "";
 						if( isset( $_REQUEST['edit'] ) ) {
-							$edit = intval( $_REQUEST['edit'] );
-							$channels = get_option( 'pmprosla_channels_' . $edit );
+							$level = intval( $_REQUEST['edit'] );
+							if(!empty($options['channel_add_settings'][$level.'_channels'])){
+								$channels = $options['channel_add_settings'][$level.'_channels'];
+							} else {
+								$channels = "";
+							}
 						} else {
 							$channels = "";
 						}
@@ -128,13 +141,18 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 	if( $level_id <= 0 ) {
 		return;
 	}
-	if($_REQUEST['pmprosla_checkbox'] == "pmprosla_checkbox"){
-		update_option('pmprosla_enabled_'.$level_id, true);
+	$options = get_option( 'pmprosla_data' );
+	$channel_add_settings = $options['channel_add_settings'];
+	if(!empty($_REQUEST['pmprosla_checkbox'])){
+		$channel_add_settings[$level_id.'_enabled'] = true;
 	} else {
-		update_option('pmprosla_enabled_'.$level_id, false);
+		$channel_add_settings[$level_id.'_enabled'] = false;
 	}
-	$channels = $_REQUEST['pmprosla_channel_input'];
-	update_option('pmprosla_channels_'.$level_id, $channels);
+	$channel_add_settings[$level_id.'_channels'] = $_REQUEST['pmprosla_channel_input'];
+	var_dump($channel_add_settings);
+	$options['channel_add_settings'] = $channel_add_settings;
+	var_dump($options);
+	update_option('pmprosla_data', $options);
 }
 add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level' );
 
@@ -146,16 +164,16 @@ add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level
  *
  * @since 0.2.0
  */
-function pmpro_slack_integration_menu() {
+function pmprosla_integration_menu() {
 	add_options_page(
 		__( 'PMPro Slack', 'pmpro-slack' ),
 		__( 'PMPro Slack', 'pmpro-slack' ),
 		'manage_options',
-		'pmpro_slack',
-		'pmpro_slack_integration_options_page'
+		'pmprosla',
+		'pmprosla_integration_options_page'
 	);
 }
-function pmpro_slack_integration_options_page() {
+function pmprosla_integration_options_page() {
 	?>
 	<div class="wrap">
 		<h2>Paid Memberships Pro Slack Integration</h2>
@@ -168,15 +186,15 @@ function pmpro_slack_integration_options_page() {
 
 <?php
 }
-add_action('admin_init', 'pmpro_slack_admin_init');
-function pmpro_slack_admin_init(){
+add_action('admin_init', 'pmprosla_admin_init');
+function pmprosla_admin_init(){
 
-	register_setting( 'pmpro-slack-group', 'pmpro_slack', 'pmpro_slack_validate' );
-	add_settings_section( 'pmpro-slack-section', 'Slack Settings', 'pmpro_slack_section_callback', 'pmpro-slack' );
-	add_settings_field( 'pmpro_slack_webhook', 'Webhook URL', 'pmpro_slack_webhook_callback', 'pmpro-slack', 'pmpro-slack-section' );
-	add_settings_field( 'pmpro_slack_levels', 'Levels', 'pmpro_slack_levels_callback', 'pmpro-slack', 'pmpro-slack-section' );
+	register_setting( 'pmpro-slack-group', 'pmprosla_data', 'pmprosla_validate' );
+	add_settings_section( 'pmpro-slack-section', 'Slack Settings', 'pmprosla_section_callback', 'pmpro-slack' );
+	add_settings_field( 'pmprosla_webhook', 'Webhook URL', 'pmprosla_webhook_callback', 'pmpro-slack', 'pmpro-slack-section' );
+	add_settings_field( 'pmprosla_levels', 'Levels', 'pmprosla_levels_callback', 'pmpro-slack', 'pmpro-slack-section' );
 }
-function pmpro_slack_section_callback() {
+function pmprosla_section_callback() {
 	echo '<ol>
 		<li>Go To https://slack.com/services/new/incoming-webhook</li>
 		<li>Create a new webhook</li>
@@ -184,30 +202,25 @@ function pmpro_slack_section_callback() {
 		<li>Copy the URL for the webhook</li>
 		<li>Paste the URL into the field below and click submit</li>
 		</ol>';
-	
-	/*
-	$roles = pmpro_getAllLevels(true, true);	
-	foreach ($roles as $stud) {
-
-		echo $stud;
-	}
-	*/
 }
 
 //webhook option
-function pmpro_slack_webhook_callback() {
-	$options = get_option( 'pmpro_slack' );
-		
-	echo '<input type="url" id="webhook" name="pmpro_slack[webhook]" value="' . esc_url( $options[ 'webhook' ] ) . '" />';
+function pmprosla_webhook_callback() {
+	$options = get_option( 'pmprosla_data' );
+	$webhook = "";
+	if(!empty($options[ 'webhook' ])){
+		$webhook = esc_url( $options[ 'webhook' ] );
+	}
+	echo '<input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . $webhook . '" />';
 }
 
 //levels option
-function pmpro_slack_levels_callback() {
-	$options = get_option( 'pmpro_slack' );
+function pmprosla_levels_callback() {
+	$options = get_option( 'pmprosla_data' );
 	$levels = pmpro_getAllLevels(true, true);
 		
 	echo "<p>Which levels should notifications be sent for?</p>";
-	echo "<select multiple='yes' name=\"pmpro_slack[levels][]\">";
+	echo "<select multiple='yes' name=\"pmprosla_data[levels][]\">";
 	foreach($levels as $level)
 	{
 		echo "<option value='" . $level->id . "' ";
@@ -219,17 +232,29 @@ function pmpro_slack_levels_callback() {
 }
 
 //validate fields
-function pmpro_slack_validate($input) {
-	$options = get_option( 'pmpro_slack' );
-	
-	$options['webhook'] = trim($input['webhook']);
-	if(!preg_match('/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $options['webhook'])) {
-		$options['webhook'] = '';
+function pmprosla_validate($input) {
+	$options = get_option( 'pmprosla_data' );
+	if(!empty($input['webhook'])){
+		$options['webhook'] = trim($input['webhook']);
+		if(!preg_match('/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $options['webhook'])) {
+			$options['webhook'] = '';
+		}
 	}
 	
-	$options['levels'] = $input['levels'];
-	for($i = 0; $i < count($options['levels']); $i++)
-		$options['levels'][$i] = intval($options['levels'][$i]);
+	if(!empty($input['levels'])){
+		$options['levels'] = $input['levels'];
+		for($i = 0; $i < count($options['levels']); $i++)
+			$options['levels'][$i] = intval($options['levels'][$i]);
+	} else {
+		$options['levels'] = [];
+	}
+	
+	if(!empty($input['channel_add_settings'])){
+		// Should split channels up into another array here, and switch to channel_id
+		$options['channel_add_settings'] = $input['channel_add_settings'];
+	} else if (empty($options['channel_add_settings'])) {
+		$options['channel_add_settings'] = [[]];
+	}
 		
 	return $options;
 }
@@ -237,7 +262,7 @@ function pmpro_slack_validate($input) {
 /*
 Function to add links to the plugin row meta
 */
-function pmpro_slack_plugin_row_meta($links, $file) {
+function pmprosla_plugin_row_meta($links, $file) {
 	if(strpos($file, 'pmpro-slack.php') !== false)
 	{
 		$new_links = array(
@@ -248,4 +273,4 @@ function pmpro_slack_plugin_row_meta($links, $file) {
 	}
 	return $links;
 }
-add_filter('plugin_row_meta', 'pmpro_slack_plugin_row_meta', 10, 2);
+add_filter('plugin_row_meta', 'pmprosla_plugin_row_meta', 10, 2);

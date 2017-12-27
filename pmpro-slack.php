@@ -72,6 +72,75 @@ function pmpro_slack_pmpro_after_checkout( $user_id ) {
 
 add_action( 'admin_menu', 'pmpro_slack_integration_menu' );
 
+
+/**
+ *  Adds options to add users to Slack channel after checkout
+ *  for the level being edited
+ */
+function pmprosla_membership_level_after_other_settings(){
+	?>
+	<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
+	<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row" valign="top"><label for="pmprosla_checkbox"><?php _e('Enable Slack Integration:', 'paid-memberships-pro'); ?></label></th>
+				<td>
+					<?php
+						if( isset( $_REQUEST['edit'] ) ) {
+							$edit = intval( $_REQUEST['edit'] );
+							$pmprosla_enabled = get_option( 'pmprosla_enabled_' . $edit );
+						} else {
+							$pmprosla_enabled = false;
+						}
+					?>
+					<input type="checkbox" name="pmprosla_checkbox" id="pmprosla_checkbox" value="pmprosla_checkbox" 
+							onclick="if(jQuery('#pmprosla_checkbox').is(':checked')) { jQuery('#pmprosla_channel_input_row').show(); } else { jQuery('#pmprosla_channel_input_row').hide();}" 
+							<?php if($pmprosla_enabled){echo "checked";}?>/>
+					<label for="pmprosla_checkbox"><?php _e('Add users to Slack channel on checkout.', 'paid-memberships-pro'); ?></label>
+				</td>
+			</tr>
+			<tr id="pmprosla_channel_input_row" <?php if(!$pmprosla_enabled){echo "hidden";}?>>
+				<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php _e('Channels:', 'paid-memberships-pro'); ?></label></th>
+				<td>
+					<?php
+						if( isset( $_REQUEST['edit'] ) ) {
+							$edit = intval( $_REQUEST['edit'] );
+							$channels = get_option( 'pmprosla_channels_' . $edit );
+						} else {
+							$channels = "";
+						}
+					?>
+					<input type="text" name="pmprosla_channel_input" id="pmprosla_channel_input" value="<?php echo $channels; ?>" />
+					<label for="pmprosla_channel_input"><?php _e('Input the channels to add users to when they checkout for this level, separated by a comma.', 'paid-memberships-pro'); ?></p>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<?php 
+}
+add_action( 'pmpro_membership_level_after_other_settings', 'pmprosla_membership_level_after_other_settings' );
+
+
+/**
+ *  Saves the fields added in pmprosla_membership_level_after_other_settings()
+ */
+function pmprosla_pmpro_save_membership_level( $level_id) {
+	if( $level_id <= 0 ) {
+		return;
+	}
+	if($_REQUEST['pmprosla_checkbox'] == "pmprosla_checkbox"){
+		update_option('pmprosla_enabled_'.$level_id, true);
+	} else {
+		update_option('pmprosla_enabled_'.$level_id, false);
+	}
+	$channels = $_REQUEST['pmprosla_channel_input'];
+	update_option('pmprosla_channels_'.$level_id, $channels);
+}
+add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level' );
+
+
+
+
 /**
  * Add the menu
  *
@@ -138,11 +207,11 @@ function pmpro_slack_levels_callback() {
 	$levels = pmpro_getAllLevels(true, true);
 		
 	echo "<p>Which levels should notifications be sent for?</p>";
-	echo "<select multiple='yes' name=\"pmpro_slack[levels][]\">";			
+	echo "<select multiple='yes' name=\"pmpro_slack[levels][]\">";
 	foreach($levels as $level)
 	{
 		echo "<option value='" . $level->id . "' ";
-		if(in_array($level->id, $options['levels']))
+		if(!empty($options['levels']) && in_array($level->id, $options['levels']))
 			echo "selected='selected'";
 		echo ">" . $level->name . "</option>";
 	}

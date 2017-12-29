@@ -10,6 +10,11 @@
  */
 
 define('PMPROSLA_DIR', dirname(__FILE__));
+
+//Used to get oauth token
+//define('PMPROSLA_CLIENT_ID', 'xxxx-xxxxxx-xxxx');
+//define('PMPROSLA_CLIENT_SECRET', 'xxxx-xxxxxx-xxxx');
+
 require_once(PMPROSLA_DIR . '/includes/slack_functions.php');
 
 add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2);
@@ -174,10 +179,32 @@ function pmprosla_integration_menu() {
 	);
 }
 function pmprosla_integration_options_page() {
+	echo pmprosla_get_slack_user_id("dlparker1005@gmail.com");
+	echo pmprosla_get_slack_user_id('randomemail@gmail.com');
+
+	if(!empty($_REQUEST['code'])) {
+		$code = $_REQUEST['code'];
+		$response = file_get_contents("https://slack.com/api/oauth.access?client_id=".PMPROSLA_CLIENT_ID."&client_secret=".PMPROSLA_CLIENT_SECRET."&code=".$code);
+		$response_arr = json_decode($response, true);
+		if($response_arr['ok']==true) {
+			$options = get_option( 'pmprosla_data' );
+			$options['oauth'] = $response_arr['access_token'];
+			update_option('pmprosla_data', $options);
+		}
+		else {
+			echo "Something went wrong: ".$response;
+		}
+	}
 	?>
 	<div class="wrap">
 		<h2>Paid Memberships Pro Slack Integration</h2>
 		<form action="options.php" method="POST">
+			<a href="https://slack.com/oauth/authorize?
+				scope=users:read users:read.email channels:write channels:read
+				&client_id=<?php echo(PMPROSLA_CLIENT_ID); ?>">
+				<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" 
+				srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
+			</a>
 			<?php settings_fields( 'pmpro-slack-group' ); ?>
 			<?php do_settings_sections( 'pmpro-slack' ); ?>
 			<?php submit_button(); ?>
@@ -254,6 +281,10 @@ function pmprosla_validate($input) {
 		$options['channel_add_settings'] = $input['channel_add_settings'];
 	} else if (empty($options['channel_add_settings'])) {
 		$options['channel_add_settings'] = [[]];
+	}
+	
+	if(!empty($input['oauth'])){
+		$options['oauth'] = trim($input['oauth']);
 	}
 		
 	return $options;

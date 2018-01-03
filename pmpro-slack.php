@@ -179,9 +179,6 @@ function pmprosla_integration_menu() {
 	);
 }
 function pmprosla_integration_options_page() {
-	echo pmprosla_get_slack_user_id("dlparker1005@gmail.com");
-	echo pmprosla_get_slack_user_id('randomemail@gmail.com');
-
 	if(!empty($_REQUEST['code'])) {
 		$code = $_REQUEST['code'];
 		$response = file_get_contents("https://slack.com/api/oauth.access?client_id=".PMPROSLA_CLIENT_ID."&client_secret=".PMPROSLA_CLIENT_SECRET."&code=".$code);

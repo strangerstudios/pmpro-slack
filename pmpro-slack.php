@@ -87,6 +87,8 @@ add_action( 'admin_menu', 'pmprosla_integration_menu' );
  */
 function pmprosla_membership_level_after_other_settings(){
 	$options = get_option( 'pmprosla_data' );
+	
+	//TODO: Only show if oauth is set up. Otherwise link to settings
 	?>
 	<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
 	<table class="form-table">
@@ -120,7 +122,10 @@ function pmprosla_membership_level_after_other_settings(){
 						if( isset( $_REQUEST['edit'] ) ) {
 							$level = intval( $_REQUEST['edit'] );
 							if(!empty($options['channel_add_settings'][$level.'_channels'])){
-								$channels = $options['channel_add_settings'][$level.'_channels'];
+								foreach($options['channel_add_settings'][$level.'_channels'] as $chanel) {
+									$channels = $channels . pmprosla_get_slack_channel_name($chanel) . ', ';
+								}
+								$channels = substr($channels, 0, -2);
 							} else {
 								$channels = "";
 							}
@@ -153,7 +158,16 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 	} else {
 		$channel_add_settings[$level_id.'_enabled'] = false;
 	}
-	$channel_add_settings[$level_id.'_channels'] = $_REQUEST['pmprosla_channel_input'];
+	
+	$channel_names = explode(",", $_REQUEST['pmprosla_channel_input']);
+	$channel_ids = [];
+	foreach($channel_names as $name){
+		if(!empty(pmprosla_get_slack_channel_id(trim($name)))){
+			$channel_ids += [pmprosla_get_slack_channel_id(trim($name))];
+		}
+	}
+	$channel_add_settings[$level_id.'_channels'] = $channel_ids;
+	
 	var_dump($channel_add_settings);
 	$options['channel_add_settings'] = $channel_add_settings;
 	var_dump($options);
@@ -178,6 +192,7 @@ function pmprosla_integration_menu() {
 		'pmprosla_integration_options_page'
 	);
 }
+//TODO: Maybe hide oauth button if we already have an auth code
 function pmprosla_integration_options_page() {
 	if(!empty($_REQUEST['code'])) {
 		$code = $_REQUEST['code'];

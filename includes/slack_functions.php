@@ -55,13 +55,29 @@ function pmprosla_slack_user_in_channel($slack_user_id, $channel_id){
 	echo "Something went wrong: ".$response;
 }
 
-
-function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id = NULL, $old_level_id = NULL){
+//TODO: Maybe take array of levels to cancel, if just an int change into an array containing an int
+function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id = NULL, $old_level_ids = NULL){
 	$options = get_option( 'pmprosla_data' );
 	
 	//get arrays for old channels and new channels
-	$new_level_channels = $options['channel_add_settings'][$new_level_id.'_channels'];
-	$old_level_channels = $options['channel_add_settings'][$old_level_id.'_channels'];
+	$new_level_channels = [];
+	if(!empty($new_level_id)){
+		$new_level_channels = $options['channel_add_settings'][$new_level_id.'_channels'];
+	}
+	$old_level_channels = [];
+	if(!empty($old_level_ids)){
+		foreach($old_level_ids as $old_level_id){
+			if(!empty($options['channel_add_settings'][$old_level_id.'_enabled'])&&$options['channel_add_settings'][$old_level_id.'_enabled']==true){
+				foreach($options['channel_add_settings'][$old_level_id.'_channels'] as $channel_id){
+					$old_level_channels[] = $channel_id;
+				}
+			}
+		}
+	}
+	
+	if(empty($options['channel_add_settings'][$new_level_id.'_enabled'])||$options['channel_add_settings'][$new_level_id.'_enabled']==false){
+		$new_level_channels = [];
+	}
 	
 	//remove all common channels between the two arrays
 	$channels_to_add = array_diff($new_level_channels, $old_level_channels);
@@ -86,6 +102,9 @@ function pmprosla_add_user_to_channel($slack_user_id, $channel_id){
 	if($response_arr['ok']) {
 		return true;
 	}
+	if($response_arr['error']=="already_in_channel"){
+		return true;
+	}
 	echo "Something went wrong: ".$response;
 	return false;
 }
@@ -93,6 +112,30 @@ function pmprosla_add_user_to_channel($slack_user_id, $channel_id){
 //returns true if the user is successfully kicked from the channel, false otherwise
 function pmprosla_remove_user_from_channel($slack_user_id, $channel_id){
 	$response = file_get_contents('https://slack.com/api/channels.kick?channel='.$channel_id.'&user='.$slack_user_id.'&token='.pmprosla_get_oauth());
+	$response_arr = json_decode($response, true);
+	if($response_arr['ok']) {
+		return true;
+	}
+	echo "Something went wrong: ".$response;
+	return false;
+}
+
+function pmprosla_invite_user_to_workspace($user, $level=NULL){
+	$email = $user->user_email;
+	// Could set first and last names automoatically, not sure if this is a good idea
+	//$first_name = $user->first_name;
+	//$last_name = $user->last_name;
+	$options = get_option( 'pmprosla_data' );
+	$channels = "";
+	foreach($options['channel_add_settings'][$level.'_channels'] as $channel) {
+		$channels = $channels . $channel . ',';
+	}
+	$channels = substr($channels, 0, -1);
+	$response = file_get_contents('https://slack.com/api/users.admin.invite?'
+		.'email='.$email
+		.'&channels='.$channels
+		.'&resend=true'
+		.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
 	if($response_arr['ok']) {
 		return true;

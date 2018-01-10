@@ -18,7 +18,6 @@ define('PMPROSLA_DIR', dirname(__FILE__));
 require_once(PMPROSLA_DIR . '/includes/slack_functions.php');
 
 add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2);
-
 /**
  * Main Slack Integration Function
  *
@@ -78,8 +77,33 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 	}
 }
 
-add_action( 'admin_menu', 'pmprosla_integration_menu' );
+add_action( 'pmpro_before_change_membership_level', 'pmprosla_pmpro_before_change_membership_level', 10, 3);
+/**
+ * Main Slack Integration Function
+ *
+  * @param $user_id
+ *
+ * @since 1.0
+ */
+function pmprosla_pmpro_before_change_membership_level( $level_id, $user_id, $old_levels) {
+	$current_user = get_userdata( $user_id );
+	$email = $current_user->user_email;
+	$options = get_option( 'pmprosla_data' );
+	
+	if(!empty($options['oauth'])) {
+		if(pmprosla_email_in_slack_workspace($email)){
+			$old_level_ids = [];
+			foreach($old_levels as $level){
+				$old_level_ids[] = $level->ID;
+			}
 
+			pmprosla_switch_slack_channels_by_level(pmprosla_get_slack_user_id($email), $level_id, $old_level_ids);
+		} else {
+			pmprosla_invite_user_to_workspace($current_user, $level_id);
+		}
+	}
+	
+}
 
 /**
  *  Adds options to add users to Slack channel after checkout
@@ -122,8 +146,8 @@ function pmprosla_membership_level_after_other_settings(){
 						if( isset( $_REQUEST['edit'] ) ) {
 							$level = intval( $_REQUEST['edit'] );
 							if(!empty($options['channel_add_settings'][$level.'_channels'])){
-								foreach($options['channel_add_settings'][$level.'_channels'] as $chanel) {
-									$channels = $channels . pmprosla_get_slack_channel_name($chanel) . ', ';
+								foreach($options['channel_add_settings'][$level.'_channels'] as $channel) {
+									$channels = $channels . pmprosla_get_slack_channel_name($channel) . ', ';
 								}
 								$channels = substr($channels, 0, -2);
 							} else {
@@ -163,7 +187,7 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 	$channel_ids = [];
 	foreach($channel_names as $name){
 		if(!empty(pmprosla_get_slack_channel_id(trim($name)))){
-			$channel_ids += [pmprosla_get_slack_channel_id(trim($name))];
+			$channel_ids[] = pmprosla_get_slack_channel_id(trim($name));
 		}
 	}
 	$channel_add_settings[$level_id.'_channels'] = $channel_ids;
@@ -177,7 +201,7 @@ add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level
 
 
 
-
+add_action( 'admin_menu', 'pmprosla_integration_menu' );
 /**
  * Add the menu
  *
@@ -212,7 +236,7 @@ function pmprosla_integration_options_page() {
 		<h2>Paid Memberships Pro Slack Integration</h2>
 		<form action="options.php" method="POST">
 			<a href="https://slack.com/oauth/authorize?
-				scope=users:read users:read.email channels:write channels:read
+				scope=client
 				&client_id=<?php echo(PMPROSLA_CLIENT_ID); ?>">
 				<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" 
 				srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />

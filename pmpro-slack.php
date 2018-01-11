@@ -21,7 +21,7 @@ add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2);
 /**
  * Main Slack Integration Function
  *
-  * @param $user_id
+ * @param $user_id
  *
  * @since 1.0
  */
@@ -192,9 +192,7 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 	}
 	$channel_add_settings[$level_id.'_channels'] = $channel_ids;
 	
-	var_dump($channel_add_settings);
 	$options['channel_add_settings'] = $channel_add_settings;
-	var_dump($options);
 	update_option('pmprosla_data', $options);
 }
 add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level' );

@@ -3,59 +3,112 @@
  *	Slack API Calls
  */
  
+// These variables are global to avoid doing more API calls than necessary
+// $pmprosla_users_from_api is an associative array
+// 		key is user's email, value is array of user info, null if API returned error
+// $pmpro_channels_from_api is array of all channel info, result of channels.list API call
+//		first and only element is "error" of the API call returned an error
+
+$pmprosla_users_from_api = [];
+$pmprosla_channels_from_api = [];
+
+ 
 //returns true if the email inputted is associated with a Slack user in the workspace, false otherwise
 function pmprosla_email_in_slack_workspace($email){
-	$response = file_get_contents('https://slack.com/api/users.lookupByEmail?email='.$email.'&token='.pmprosla_get_oauth());
-	$response_arr = json_decode($response, true);
-	return $response_arr['ok'];
+	global $pmprosla_users_from_api;
+	if(!array_key_exists($email, $pmprosla_users_from_api)) {
+		pmprosla_fill_user_info_from_email($email);
+	}
+	return !empty($pmprosla_users_from_api[$email]);
 }
 
 //returns the user id associated with the acount with the given email in the Slack workspace, NULL otherwise
 function pmprosla_get_slack_user_id($email){
+	global $pmprosla_users_from_api;
+	if(!array_key_exists($email, $pmprosla_users_from_api)) {
+		pmprosla_fill_user_info_from_email($email);
+	}
+	if(empty($pmprosla_users_from_api[$email])){
+		return false;
+	}
+	return $pmprosla_users_from_api[$email]['id'];
+}
+
+function pmprosla_fill_user_info_from_email($email) {
+	global $pmprosla_users_from_api;
 	$response = file_get_contents('https://slack.com/api/users.lookupByEmail?email='.$email.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
 	if($response_arr['ok']) {
-		return $response_arr['user']['id'];
+		$pmprosla_users_from_api[$email] = $response_arr['user'];
+	} else {
+		$pmprosla_users_from_api[$email] = NULL;
 	}
-	echo "Something went wrong: ".$response;
 }
 
 //returns the channel id associated with the channel with the inputted name in the Slack workspace, NULL otherwise
 function pmprosla_get_slack_channel_id($channel_name){
-	$response = file_get_contents('https://slack.com/api/channels.list?exclude_members=true&token='.pmprosla_get_oauth());
-	$response_arr = json_decode($response, true);
-	if($response_arr['ok']) {
-		foreach($response_arr['channels'] as $channel_info) {
-			if($channel_info['name_normalized'] == trim($channel_name)) {
-				return $channel_info['id'];
-			}
+	global $pmprosla_channels_from_api;
+	if($pmprosla_channels_from_api === []) {
+		pmprosla_fill_channel_info();
+		if($pmprosla_channels_from_api === []) {
+			return;
 		}
-		return;
 	}
-	echo "Something went wrong: ".$response;
+	foreach($pmprosla_channels_from_api as $channel_info) {
+		if($channel_info['name_normalized'] == trim($channel_name)) {
+			return $channel_info['id'];
+		}
+	}
+	return;
 }
 
 //returns the channel name associated with the channel with the inputted id in the Slack workspace, NULL otherwise
 function pmprosla_get_slack_channel_name($channel_id){
-	$response = file_get_contents('https://slack.com/api/channels.info?channel='.$channel_id.'&token='.pmprosla_get_oauth());
-	$response_arr = json_decode($response, true);
-	if($response_arr['ok']) {
-		return $response_arr['channel']['name'];
+	global $pmprosla_channels_from_api;
+	if($pmprosla_channels_from_api === []) {
+		pmprosla_fill_channel_info();
+		if($pmprosla_channels_from_api === []) {
+			return;
+		}
 	}
-	echo "Something went wrong: ".$response;
+	foreach($pmprosla_channels_from_api as $channel_info){
+		if($channel_info['id']==$channel_id){
+			return $channel_info['name_normalized'];
+		}
+	}
+	return;
 }
 
 //returns true if a given slack user id is a member of the channel with the given channel_id, false otherwise
 function pmprosla_slack_user_in_channel($slack_user_id, $channel_id){
-	$response = file_get_contents('https://slack.com/api/channels.info?channel='.$channel_id.'&token='.pmprosla_get_oauth());
-	$response_arr = json_decode($response, true);
-	if($response_arr['ok']) {
-		return in_array($slack_user_id, $response_arr['channel']['members']);
+	global $pmprosla_channels_from_api;
+	if($pmprosla_channels_from_api === []) {
+		pmprosla_fill_channel_info();
+		if($pmprosla_channels_from_api === []) {
+			return;
+		}
 	}
-	echo "Something went wrong: ".$response;
+	foreach($pmprosla_channels_from_api as $channel_info){
+		if($channel_info['id']==$channel_id){
+			return in_array($slack_user_id, $channel_info['members']);
+		}
+	}
+	return false;
 }
 
-//TODO: Maybe take array of levels to cancel, if just an int change into an array containing an int
+function pmprosla_fill_channel_info() {
+	global $pmprosla_channels_from_api;
+	$response = file_get_contents('https://slack.com/api/channels.list?token='.pmprosla_get_oauth());
+	$response_arr = json_decode($response, true);
+	if($response_arr['ok']) {
+		$pmprosla_channels_from_api = $response_arr['channels'];
+	} else {
+		$pmprosla_channels_from_api = NULL;
+		echo "Something went wrong: ".$response;
+	}
+}
+
+//slack_user_id should be an int, $new_level_id should be an int, $old_level_ids should be an array of ints
 function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id = NULL, $old_level_ids = NULL){
 	$options = get_option( 'pmprosla_data' );
 	

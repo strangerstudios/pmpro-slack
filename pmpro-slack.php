@@ -111,59 +111,64 @@ function pmprosla_pmpro_before_change_membership_level( $level_id, $user_id, $ol
  */
 function pmprosla_membership_level_after_other_settings(){
 	$options = get_option( 'pmprosla_data' );
-	
-	//TODO: Only show if oauth is set up. Otherwise link to settings
+	if(!empty($options['oauth'])) {
 	?>
-	<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
-	<table class="form-table">
-		<tbody>
-			<tr>
-				<th scope="row" valign="top"><label for="pmprosla_checkbox"><?php _e('Enable Slack Integration:', 'paid-memberships-pro'); ?></label></th>
-				<td>
-					<?php
-						if( isset( $_REQUEST['edit'] ) ) {
-							$level = intval( $_REQUEST['edit'] );
-							if(!empty($options['channel_add_settings'][$level.'_enabled'])){
-								$pmprosla_enabled = $options['channel_add_settings'][$level.'_enabled'];
+		<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row" valign="top"><label for="pmprosla_checkbox"><?php _e('Enable Slack Integration:', 'paid-memberships-pro'); ?></label></th>
+					<td>
+						<?php
+							if( isset( $_REQUEST['edit'] ) ) {
+								$level = intval( $_REQUEST['edit'] );
+								if(!empty($options['channel_add_settings'][$level.'_enabled'])){
+									$pmprosla_enabled = $options['channel_add_settings'][$level.'_enabled'];
+								} else {
+									$pmprosla_enabled = false;
+								}
 							} else {
 								$pmprosla_enabled = false;
 							}
-						} else {
-							$pmprosla_enabled = false;
-						}
-					?>
-					<input type="checkbox" name="pmprosla_checkbox" id="pmprosla_checkbox" value="pmprosla_checkbox" 
-							onclick="if(jQuery('#pmprosla_checkbox').is(':checked')) { jQuery('#pmprosla_channel_input_row').show(); } else { jQuery('#pmprosla_channel_input_row').hide();}" 
-							<?php if($pmprosla_enabled){echo "checked";}?>/>
-					<label for="pmprosla_checkbox"><?php _e('Add users to Slack channel on checkout.', 'paid-memberships-pro'); ?></label>
-				</td>
-			</tr>
-			<tr id="pmprosla_channel_input_row" <?php if(!$pmprosla_enabled){echo "hidden";}?>>
-				<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php _e('Channels:', 'paid-memberships-pro'); ?></label></th>
-				<td>
-					<?php
-						$channels = "";
-						if( isset( $_REQUEST['edit'] ) ) {
-							$level = intval( $_REQUEST['edit'] );
-							if(!empty($options['channel_add_settings'][$level.'_channels'])){
-								foreach($options['channel_add_settings'][$level.'_channels'] as $channel) {
-									$channels = $channels . pmprosla_get_slack_channel_name($channel) . ', ';
+						?>
+						<input type="checkbox" name="pmprosla_checkbox" id="pmprosla_checkbox" value="pmprosla_checkbox" 
+								onclick="if(jQuery('#pmprosla_checkbox').is(':checked')) { jQuery('#pmprosla_channel_input_row').show(); } else { jQuery('#pmprosla_channel_input_row').hide();}" 
+								<?php if($pmprosla_enabled){echo "checked";}?>/>
+						<label for="pmprosla_checkbox"><?php _e('Add users to Slack channel on checkout.', 'paid-memberships-pro'); ?></label>
+					</td>
+				</tr>
+				<tr id="pmprosla_channel_input_row" <?php if(!$pmprosla_enabled){echo "hidden";}?>>
+					<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php _e('Channels:', 'paid-memberships-pro'); ?></label></th>
+					<td>
+						<?php
+							$channels = "";
+							if( isset( $_REQUEST['edit'] ) ) {
+								$level = intval( $_REQUEST['edit'] );
+								if(!empty($options['channel_add_settings'][$level.'_channels'])){
+									foreach($options['channel_add_settings'][$level.'_channels'] as $channel) {
+										$channels = $channels . pmprosla_get_slack_channel_name($channel) . ', ';
+									}
+									$channels = substr($channels, 0, -2);
+								} else {
+									$channels = "";
 								}
-								$channels = substr($channels, 0, -2);
 							} else {
 								$channels = "";
 							}
-						} else {
-							$channels = "";
-						}
-					?>
-					<input type="text" name="pmprosla_channel_input" id="pmprosla_channel_input" value="<?php echo $channels; ?>" />
-					<label for="pmprosla_channel_input"><?php _e('Input the channels to add users to when they checkout for this level, separated by a comma.', 'paid-memberships-pro'); ?></p>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-	<?php 
+						?>
+						<input type="text" name="pmprosla_channel_input" id="pmprosla_channel_input" value="<?php echo $channels; ?>" />
+						<label for="pmprosla_channel_input"><?php _e('Input the channels to add users to when they checkout for this level, separated by a comma.', 'paid-memberships-pro'); ?></p>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<?php 
+	} else {
+	?> 
+		<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
+		<p>Slack integration not yet set up. To do so, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
+	<?php
+	}
 }
 add_action( 'pmpro_membership_level_after_other_settings', 'pmprosla_membership_level_after_other_settings' );
 
@@ -176,24 +181,26 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 		return;
 	}
 	$options = get_option( 'pmprosla_data' );
-	$channel_add_settings = $options['channel_add_settings'];
-	if(!empty($_REQUEST['pmprosla_checkbox'])){
-		$channel_add_settings[$level_id.'_enabled'] = true;
-	} else {
-		$channel_add_settings[$level_id.'_enabled'] = false;
-	}
-	
-	$channel_names = explode(",", $_REQUEST['pmprosla_channel_input']);
-	$channel_ids = [];
-	foreach($channel_names as $name){
-		if(!empty(pmprosla_get_slack_channel_id(trim($name)))){
-			$channel_ids[] = pmprosla_get_slack_channel_id(trim($name));
+	if(!empty($options['oauth'])) {
+		$channel_add_settings = $options['channel_add_settings'];
+		if(!empty($_REQUEST['pmprosla_checkbox'])){
+			$channel_add_settings[$level_id.'_enabled'] = true;
+		} else {
+			$channel_add_settings[$level_id.'_enabled'] = false;
 		}
-	}
-	$channel_add_settings[$level_id.'_channels'] = $channel_ids;
 	
-	$options['channel_add_settings'] = $channel_add_settings;
-	update_option('pmprosla_data', $options);
+		$channel_names = explode(",", $_REQUEST['pmprosla_channel_input']);
+		$channel_ids = [];
+		foreach($channel_names as $name){
+			if(!empty(pmprosla_get_slack_channel_id(trim($name)))){
+				$channel_ids[] = pmprosla_get_slack_channel_id(trim($name));
+			}
+		}
+		$channel_add_settings[$level_id.'_channels'] = $channel_ids;
+	
+		$options['channel_add_settings'] = $channel_add_settings;
+		update_option('pmprosla_data', $options);
+	}
 }
 add_action( 'pmpro_save_membership_level', 'pmprosla_pmpro_save_membership_level' );
 

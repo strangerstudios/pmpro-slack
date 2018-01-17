@@ -114,7 +114,7 @@ function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id =
 	
 	//get arrays for old channels and new channels
 	$new_level_channels = [];
-	if(!empty($new_level_id)){
+	if(!empty($new_level_id) && !empty($options['channel_add_settings'][$new_level_id.'_channels'])){
 		$new_level_channels = $options['channel_add_settings'][$new_level_id.'_channels'];
 	}
 	$old_level_channels = [];

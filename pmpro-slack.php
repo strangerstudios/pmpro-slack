@@ -26,6 +26,10 @@ add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2);
  * @since 1.0
  */
  
+ /*
+	TODO: RENAME 'levels' IN OPTIONS TO 'pmprosla_levels_to_notify'
+*/
+ 
 function pmprosla_pmpro_after_checkout( $user_id ) {
 
 	$level = pmpro_getMembershipLevelForUser($user_id);
@@ -33,7 +37,7 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 
 	$options = get_option( 'pmprosla_data' );
 	$webhook_url = $options['webhook'];
-	$levels = $options['levels'];
+	$levels = $options['pmprosla_levels_to_notify'];
 		
 	// Only if this level is in the array.
 	if(!in_array($level->id, $levels))
@@ -111,9 +115,14 @@ function pmprosla_pmpro_before_change_membership_level( $level_id, $user_id, $ol
  */
 function pmprosla_membership_level_after_other_settings(){
 	$options = get_option( 'pmprosla_data' );
+	?><h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3><?php
+	
+	/*
+		TODO: ADD SETTING FOR SEND MESSAGE AT CHECKOUT TO WEBHOOK
+	*/
+	
 	if(!empty($options['oauth'])) {
 	?>
-		<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
 		<table class="form-table">
 			<tbody>
 				<tr>
@@ -165,7 +174,6 @@ function pmprosla_membership_level_after_other_settings(){
 		<?php 
 	} else {
 	?> 
-		<h3 class="topborder"><?php _e('Slack Integration', 'paid-memberships-pro');?></h3>
 		<p>Slack integration not yet set up. To do so, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
 	<?php
 	}
@@ -181,6 +189,11 @@ function pmprosla_pmpro_save_membership_level( $level_id) {
 		return;
 	}
 	$options = get_option( 'pmprosla_data' );
+	
+	/*
+		TODO: SAVE SETTING FOR SEND MESSAGE AT CHECKOUT TO WEBHOOK
+	*/
+	
 	if(!empty($options['oauth'])) {
 		$channel_add_settings = $options['channel_add_settings'];
 		if(!empty($_REQUEST['pmprosla_checkbox'])){
@@ -221,7 +234,12 @@ function pmprosla_integration_menu() {
 		'pmprosla_integration_options_page'
 	);
 }
-//TODO: Maybe hide oauth button if we already have an auth code
+
+/*
+	TODO: 	REMOVE LEVEL SELECTS
+			IMPROVE DESCRIPTIONS
+			SHOW IF USER HAS ALREADY GOTTEN OAUTH
+*/
 function pmprosla_integration_options_page() {
 	if(!empty($_REQUEST['code'])) {
 		$code = $_REQUEST['code'];
@@ -288,11 +306,11 @@ function pmprosla_levels_callback() {
 	$levels = pmpro_getAllLevels(true, true);
 		
 	echo "<p>Which levels should notifications be sent for?</p>";
-	echo "<select multiple='yes' name=\"pmprosla_data[levels][]\">";
+	echo "<select multiple='yes' name=\"pmprosla_data[pmprosla_levels_to_notify][]\">";
 	foreach($levels as $level)
 	{
 		echo "<option value='" . $level->id . "' ";
-		if(!empty($options['levels']) && in_array($level->id, $options['levels']))
+		if(!empty($options['pmprosla_levels_to_notify']) && in_array($level->id, $options['pmprosla_levels_to_notify']))
 			echo "selected='selected'";
 		echo ">" . $level->name . "</option>";
 	}
@@ -309,12 +327,12 @@ function pmprosla_validate($input) {
 		}
 	}
 	
-	if(!empty($input['levels'])){
-		$options['levels'] = $input['levels'];
-		for($i = 0; $i < count($options['levels']); $i++)
-			$options['levels'][$i] = intval($options['levels'][$i]);
+	if(!empty($input['pmprosla_levels_to_notify'])){
+		$options['pmprosla_levels_to_notify'] = $input['pmprosla_levels_to_notify'];
+		for($i = 0; $i < count($options['pmprosla_levels_to_notify']); $i++)
+			$options['pmprosla_levels_to_notify'][$i] = intval($options['pmprosla_levels_to_notify'][$i]);
 	} else {
-		$options['levels'] = [];
+		$options['pmprosla_levels_to_notify'] = [];
 	}
 	
 	if(!empty($input['channel_add_settings'])){

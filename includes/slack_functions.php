@@ -190,6 +190,7 @@ function pmprosla_invite_user_to_workspace($user, $level=NULL){
 		.'&resend=true'
 		.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
+		
 	if($response_arr['ok']) {
 		return true;
 	}

@@ -2,11 +2,12 @@
 /**
  * Plugin Name: Paid Memberships Pro - Slack Integration
  * Description: Slack integration for the Paid Memberships Pro plugin
- * Author: Nikhil Vimal
- * Author URI: http://nik.techvoltz.com
+ * Author: strangerstudios, nikv, dlparker1005
+ * Author URI: https://www.paidmembershipspro.com
  * Version: 1.0
  * Plugin URI:
  * License: GNU GPLv2+
+ * Text Domain: pmpro-slack
  */
 
 define('PMPROSLA_DIR', dirname(__FILE__));
@@ -284,7 +285,7 @@ function pmprosla_integration_options_page() {
 	}
 	?>
 	<div class="wrap">
-		<h2>Paid Memberships Pro Slack Integration</h2>
+		<h2><?php __('Paid Memberships Pro Slack Integration', 'pmpro-slack');?></h2>
 		<form action="options.php" method="POST">
 			<a href="https://slack.com/oauth/authorize?
 				scope=client
@@ -310,11 +311,11 @@ function pmprosla_admin_init(){
 }
 function pmprosla_section_callback() {
 	echo '<ol>
-		<li>Go To https://slack.com/services/new/incoming-webhook</li>
+		<li>Go To <a target="_blank" href="https://slack.com/services/new/incoming-webhook">https://slack.com/services/new/incoming-webhook</a></li>
 		<li>Create a new webhook</li>
 		<li>Set a channel to receive the notifications</li>
 		<li>Copy the URL for the webhook</li>
-		<li>Paste the URL into the field below and click submit</li>
+		<li>Paste the URL into the Webhook URL field below and click Save Changes below</li>
 		</ol>';
 }
 

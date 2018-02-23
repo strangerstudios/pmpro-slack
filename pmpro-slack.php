@@ -397,7 +397,7 @@ function pmprosla_admin_notice() {
 	// Check transient, if available display notice.
 	if ( get_transient( 'pmprosla-admin-notice' ) ) { ?>
 		<div class="updated notice is-dismissible">
-			<p><?php printf( __( 'Thank you for activating. <a href="%s">Visit the settings page</a> to get started with the Zapier Add On.', 'pmpro-zapier' ), get_admin_url( null, 'admin.php?page=pmpro-slack' ) ); ?></p>
+			<p><?php printf( __( 'Thank you for activating. <a href="%s">Visit the settings page</a> to get started with the Slack Integration Add On.', 'pmpro-slack' ), get_admin_url( null, 'options-general.php?page=pmprosla' ) ); ?></p>
 		</div>
 		<?php
 		// Delete transient, only display this notice once.
@@ -413,7 +413,7 @@ add_action( 'admin_notices', 'pmprosla_admin_notice' );
 function pmprosla_plugin_action_links( $links ) {
 	if ( current_user_can( 'manage_options' ) ) {
 		$new_links = array(
-			'<a href="' . get_admin_url( null, 'admin.php?page=pmpro-slack' ) . '">' . __( 'Settings', 'pmpro-zapier' ) . '</a>',
+			'<a href="' . get_admin_url( null, 'options-general.php?page=pmprosla' ) . '">' . __( 'Settings', 'pmpro-slack' ) . '</a>',
 		);
 	}
 	return array_merge( $new_links, $links );

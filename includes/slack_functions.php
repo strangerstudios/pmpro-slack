@@ -2,7 +2,7 @@
 /*
  *	Slack API Calls
  */
- 
+
 // These variables are global to avoid doing more API calls than necessary
 // $pmprosla_users_from_api is an associative array
 // 		key is user's email, value is array of user info, null if API returned error
@@ -12,7 +12,7 @@
 $pmprosla_users_from_api = [];
 $pmprosla_channels_from_api = [];
 
- 
+
 //returns true if the email inputted is associated with a Slack user in the workspace, false otherwise
 function pmprosla_email_in_slack_workspace($email){
 	global $pmprosla_users_from_api;
@@ -110,8 +110,8 @@ function pmprosla_fill_channel_info() {
 
 //slack_user_id should be an int, $new_level_id should be an int, $old_level_ids should be an array of ints
 function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id = NULL, $old_level_ids = NULL){
-	$options = get_option( 'pmprosla_data' );
-	
+	$options = pmprosla_get_options();
+
 	//get arrays for old channels and new channels
 	$new_level_channels = [];
 	if(!empty($new_level_id) && !empty($options['channel_add_settings'][$new_level_id.'_channels'])){
@@ -127,25 +127,25 @@ function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id =
 			}
 		}
 	}
-	
+
 	if(empty($options['channel_add_settings'][$new_level_id.'_enabled'])||$options['channel_add_settings'][$new_level_id.'_enabled']==false){
 		$new_level_channels = [];
 	}
-	
+
 	//remove all common channels between the two arrays
 	$channels_to_add = array_diff($new_level_channels, $old_level_channels);
 	$channels_to_remove = array_diff($old_level_channels, $new_level_channels);
-	
+
 	//remove user from all channels still related to old level
 	foreach($channels_to_remove as $channel) {
 		pmprosla_remove_user_from_channel($slack_user_id, $channel);
 	}
-	
+
 	//add user to all channels still related to new level
 	foreach($channels_to_add as $channel) {
 		pmprosla_add_user_to_channel($slack_user_id, $channel);
 	}
-	
+
 }
 
 //returns true if the user is successfully invited to the channel, false otherwise
@@ -178,7 +178,7 @@ function pmprosla_invite_user_to_workspace($user, $level=NULL){
 	// Could set first and last names automoatically, not sure if this is a good idea
 	//$first_name = $user->first_name;
 	//$last_name = $user->last_name;
-	$options = get_option( 'pmprosla_data' );
+	$options = pmprosla_get_options();
 	$channels = "";
 	foreach($options['channel_add_settings'][$level.'_channels'] as $channel) {
 		$channels = $channels . $channel . ',';
@@ -190,7 +190,7 @@ function pmprosla_invite_user_to_workspace($user, $level=NULL){
 		.'&resend=true'
 		.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
-		
+
 	if($response_arr['ok']) {
 		return true;
 	}
@@ -199,7 +199,7 @@ function pmprosla_invite_user_to_workspace($user, $level=NULL){
 }
 
 function pmprosla_get_oauth(){
-	$options = get_option( 'pmprosla_data' );
+	$options = pmprosla_get_options();
 	if(!empty($options['oauth'])) {
 		return $options['oauth'];
 	}

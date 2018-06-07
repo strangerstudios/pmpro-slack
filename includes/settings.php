@@ -17,17 +17,15 @@ function pmprosla_integration_menu() {
 }
 
 /**
-	TODO: 	REMOVE LEVEL SELECTS
-			IMPROVE DESCRIPTIONS
-			SHOW IF USER HAS ALREADY GOTTEN OAUTH
+ * Sets up PMPro Slack settings page
  */
 function pmprosla_integration_options_page() {
+	$options = pmprosla_get_options();
 	if ( ! empty( $_REQUEST['code'] ) ) {
 		$code = $_REQUEST['code'];
-		$response = file_get_contents( 'https://slack.com/api/oauth.access?client_id=' . PMPROSLA_CLIENT_ID . '&client_secret=' . PMPROSLA_CLIENT_SECRET . '&code=' . $code );
+		$response = file_get_contents( 'https://slack.com/api/oauth.access?client_id=' . $options['client_id'] . '&client_secret=' . $options['client_secret'] . '&code=' . $code );
 		$response_arr = json_decode( $response, true );
 		if ( $response_arr['ok'] == true ) {
-			$options = get_option( 'pmprosla_data' );
 			$options['oauth'] = $response_arr['access_token'];
 			update_option( 'pmprosla_data', $options );
 		} else {
@@ -39,14 +37,6 @@ function pmprosla_integration_options_page() {
 		<?php require_once( PMPRO_DIR . '/adminpages/admin_header.php' ); ?>
 		<h1><?php esc_attr_e( 'Paid Memberships Pro - Slack Integration Add On', 'pmpro-slack' ); ?></h1>
 		<form action="options.php" method="POST">
-			<h2><?php echo esc_attr_e( 'Authenticate Your Website with Slack', 'pmpro-slack' ); ?></h2>
-			<a href="https://slack.com/oauth/authorize?
-				scope=client
-				&client_id=<?php echo( PMPROSLA_CLIENT_ID ); ?>">
-				<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png"
-				srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
-			</a>
-			<hr />
 			<?php settings_fields( 'pmpro-slack-group' ); ?>
 			<?php do_settings_sections( 'pmpro-slack' ); ?>
 			<?php submit_button(); ?>
@@ -58,47 +48,26 @@ function pmprosla_integration_options_page() {
 add_action( 'admin_init', 'pmprosla_admin_init' );
 
 /**
- * Admin page init function.
+ * Organizes settings fields
  */
 function pmprosla_admin_init() {
 	register_setting( 'pmpro-slack-group', 'pmprosla_data', 'pmprosla_validate' );
-	add_settings_section( 'pmpro-slack-section', 'Slack Settings', 'pmprosla_section_callback', 'pmpro-slack' );
-	add_settings_field( 'pmprosla_webhook', 'Webhook URL', 'pmprosla_webhook_callback', 'pmpro-slack', 'pmpro-slack-section' );
-	add_settings_field( 'pmprosla_levels', 'Levels', 'pmprosla_levels_callback', 'pmpro-slack', 'pmpro-slack-section' );
+	add_settings_section( 'pmpro-slack-notifications', 'Slack Checkout Notifications', 'pmprosla_notications_callback', 'pmpro-slack' );
+	add_settings_section( 'pmpro-slack-add-to-channel', 'Add Users to Slack Channel on Checkout', 'pmprosla_slack_add_to_channel_callback', 'pmpro-slack' );
 }
+
 
 /**
- * Admin page callback section function.
+ * Sets up settings for Slack notifications on checkout
  */
-function pmprosla_section_callback() {
-	echo '<ol>
-		<li>Go To <a target="_blank" href="https://slack.com/services/new/incoming-webhook">https://slack.com/services/new/incoming-webhook</a></li>
-		<li>Create a new webhook</li>
-		<li>Set a channel to receive the notifications</li>
-		<li>Copy the URL for the webhook</li>
-		<li>Paste the URL into the Webhook URL field below and click Save Changes below</li>
-		</ol>';
-}
-
-/**
- * Webhook option.
- */
-function pmprosla_webhook_callback() {
-	$options = get_option( 'pmprosla_data' );
-	$webhook = "";
-	if(!empty($options[ 'webhook' ])){
-		$webhook = esc_url( $options[ 'webhook' ] );
-	}
-	echo '<input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . $webhook . '" />';
-}
-
-//levels option
-function pmprosla_levels_callback() {
-	$options = get_option( 'pmprosla_data' );
+function pmprosla_notications_callback() {
+	$options = pmprosla_get_options();
 	$levels = pmpro_getAllLevels( true, true );
-
-	echo '<p>Which levels should notifications be sent for?</p>';
-	echo "<select multiple='yes' name=\"pmprosla_data[levels_to_notify][]\">";
+	echo '<ol>
+		<li>Go To <a target="_blank" href="https://slack.com/services/new/incoming-webhook">https://slack.com/services/new/incoming-webhook</a> and create a new webhook</li>
+		<li>Enter created webhook URL here: <input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . esc_url( $options['webhook'] ) . '" /></li>
+		<li>Choose levels to send notifications for:
+		<select multiple="yes" name="pmprosla_data[levels_to_notify][]" id="pmpro_sla_levels_select">';
 	foreach ( $levels as $level ) {
 		echo '<option value="' . $level->id . '" ';
 		if ( ! empty( $options['levels_to_notify'] ) && in_array( $level->id, $options['levels_to_notify'] ) ) {
@@ -106,25 +75,63 @@ function pmprosla_levels_callback() {
 		}
 		echo '>' . $level->name . '</option>';
 	}
-	echo '</select>';
+		echo '</select></li>
+		<li>Click `Save Changes` at the bottom of page</li>
+		</ol>';
+		?>
+		<script>
+			jQuery( document ).ready(function() {
+				jQuery("#pmpro_sla_levels_select").selectWoo();
+			});
+		</script>
+		<?php
+}
+
+/**
+ * Sets up settings for adding users to channels on checkout
+ */
+function pmprosla_slack_add_to_channel_callback() {
+	$options = pmprosla_get_options();
+	echo '<ol>
+		<li>Go To <a target="_blank" href="https://api.slack.com/apps">https://api.slack.com/apps</a></li>
+		<li>Click `Create New App` with whatever name you would like and the workplace to integrate with, and then click `Create App`
+		<li>Navigate to Settings > Basic Information > App Credentials and enter `Client ID` and `Client Secret` below:</li>
+		Client ID: <input id="client_id" name="pmprosla_data[client_id]" value="' . esc_html( $options['client_id'] ) . '" /><br/>
+		Client Secret: <input id="client_secret" name="pmprosla_data[client_secret]" value="' . esc_html( $options['client_secret'] ) . '" />
+		<li>Click `Save Changes` at the bottom of page</li>
+		<li>Navigate to Features > OAuth & Permssions and click `Add a new Redirect URL`</li>
+		<li>Set the PMPro Slack\'s setting page as the redirect url. Click `Add` and then `Save URLs`</li>
+		<li>Click `Add To Slack` below and then click `Authorize`</li>
+		<a href="https://slack.com/oauth/authorize?
+			scope=client
+			&client_id=' . esc_html( $options['client_id'] ) . '">
+			<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png"
+			srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
+		</a>
+		<li>Follow instructions on the edit levels pages of levels for which you would like to use this feature</li>';
 }
 
 /**
  * Fields validation function.
+ *
+ * @param array $input contains contents to validate.
  */
 function pmprosla_validate( $input ) {
-	$options = get_option( 'pmprosla_data' );
+	$options = pmprosla_get_options();
 	if ( ! empty( $input['webhook'] ) ) {
 		$options['webhook'] = trim( $input['webhook'] );
 		if ( ! preg_match( '/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $options['webhook'] ) ) {
 			$options['webhook'] = '';
 		}
+	} else {
+		$options['webhook'] = '';
 	}
 
 	if ( ! empty( $input['levels_to_notify'] ) ) {
 		$options['levels_to_notify'] = $input['levels_to_notify'];
-		for ( $i = 0; $i < count( $options['levels_to_notify'] ); $i++ )
-			$options['levels_to_notify'][$i] = intval($options['levels_to_notify'][$i]);
+		for ( $i = 0; $i < count( $options['levels_to_notify'] ); $i++ ) {
+			$options['levels_to_notify'][ $i ] = intval( $options['levels_to_notify'][ $i ] );
+		}
 	} else {
 		$options['levels_to_notify'] = [];
 	}
@@ -132,23 +139,32 @@ function pmprosla_validate( $input ) {
 	if ( ! empty( $input['channel_add_settings'] ) ) {
 		// Should split channels up into another array here, and switch to channel_id.
 		$options['channel_add_settings'] = $input['channel_add_settings'];
-	} elseif ( empty( $options['channel_add_settings'] ) ) {
+	} else {
 		$options['channel_add_settings'] = [ [] ];
 	}
 
-	if ( ! empty( $input['oauth'] ) ) {
-		$options['oauth'] = trim( $input['oauth'] );
+	$settings = [ 'oauth', 'client_id', 'client_secret' ];
+	foreach ( $settings as $setting ) {
+		if ( ! empty( $input[ $setting ] ) ) {
+			$options[ $setting ] = trim( $input[ $setting ] );
+		} else {
+			$options[ $setting ] = '';
+		}
 	}
-
 	return $options;
 }
+
+
+
+
+
 
 /**
  *  Adds options to add users to Slack channel after checkout
  *  for the level being edited
  */
 function pmprosla_membership_level_after_other_settings() {
-	$options = get_option( 'pmprosla_data' ); ?>
+	$options = pmprosla_get_options(); ?>
 	<h3 class="topborder"><?php esc_attr_e( 'Slack Integration', 'paid-memberships-pro' ); ?></h3>
 	<?php if ( ! empty( $options['webhook'] ) ) { ?>
 		<table class="form-table">
@@ -167,13 +183,13 @@ function pmprosla_membership_level_after_other_settings() {
 					}
 					?>
 					/>
-						<label for="pmprosla_checkbox_notify"><?php esc_attr_e( 'Sends message when a user checks out for this level.', 'paid-memberships-pro' ); ?></label>
+						<label for="pmprosla_checkbox_notify"><?php esc_attr_e( 'Sends notification when a user checks out for this level.', 'paid-memberships-pro' ); ?></label>
 					</td>
 				</tr>
 			</tbody>
 		</table>
 	<?php } else { ?>
-		<p>Slack webhook not yet set up. To do so, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
+		<p>Slack webhook not yet set up. To send notifications when users check out for this level, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
 	<?php } ?>
 
 	<?php if ( ! empty( $options['oauth'] ) ) { ?>
@@ -215,29 +231,36 @@ function pmprosla_membership_level_after_other_settings() {
 					<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php esc_attr_e( 'Channels:', 'paid-memberships-pro' ); ?></label></th>
 					<td>
 					<?php
-					$channels = '';
 					if ( isset( $_REQUEST['edit'] ) ) {
 						$level = intval( $_REQUEST['edit'] );
-						if ( ! empty( $options['channel_add_settings'][ $level . '_channels' ] ) ) {
-							foreach ( $options['channel_add_settings'][ $level . '_channels' ] as $channel ) {
-								$channels = $channels . pmprosla_get_slack_channel_name( $channel ) . ', ';
+						echo '<select multiple="yes" name="pmpro_sla_channels_select[]" id="pmpro_sla_channels_select">';
+							global $pmprosla_channels_from_api;
+							if( [] === $pmprosla_channels_from_api ) {
+								pmprosla_fill_channel_info();
 							}
-							$channels = substr( $channels, 0, -2 );
-						} else {
-							$channels = '';
+							if( [] !== $pmprosla_channels_from_api ) {
+								foreach ( $pmprosla_channels_from_api as $channel_info ) {
+									echo '<option value="' . $channel_info['id'] . '"';
+									if ( is_array($options['channel_add_settings'][ $level . '_channels' ]) && in_array( $channel_info['id'], $options['channel_add_settings'][ $level . '_channels' ] ) ) {
+										echo ' selected=selected';
+									}
+									echo '>' . $channel_info['name_normalized'] . '</option>';
+							}
+							echo '</select>';
 						}
-					} else {
-						$channels = '';
 					}
 					?>
-						<input type="text" name="pmprosla_channel_input" id="pmprosla_channel_input" value="<?php echo esc_attr( $channels ); ?>" />
-						<label for="pmprosla_channel_input"><?php esc_attr_e( 'Input the channels to add users to when they checkout for this level, separated by a comma.', 'paid-memberships-pro' ); ?></p>
+					<script>
+						jQuery( document ).ready(function() {
+							jQuery("#pmpro_sla_channels_select").selectWoo();
+						});
+					</script>
 					</td>
 				</tr>
 			</tbody>
 		</table>
 	<?php } else { ?>
-		<p>Slack OAuth not yet set up. To do so, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
+		<p>Slack OAuth not yet set up. To enable adding users to Slack channel on checkout, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
 	<?php
 }
 }
@@ -252,7 +275,7 @@ function pmprosla_pmpro_save_membership_level( $level_id ) {
 	if ( $level_id <= 0 ) {
 		return;
 	}
-	$options = get_option( 'pmprosla_data' );
+	$options = pmprosla_get_options();
 
 	if ( ! empty( $options['webhook'] ) ) {
 		$levels = $options['levels_to_notify'];
@@ -275,17 +298,8 @@ function pmprosla_pmpro_save_membership_level( $level_id ) {
 		} else {
 			$channel_add_settings[ $level_id . '_enabled' ] = false;
 		}
-
-		$channel_names = explode( ',', $_REQUEST['pmprosla_channel_input'] );
-		$channel_ids = [];
-		foreach ( $channel_names as $name ) {
-			if ( ! empty( pmprosla_get_slack_channel_id( trim( $name ) ) ) ) {
-				$channel_ids[] = pmprosla_get_slack_channel_id( trim( $name ) );
-			}
-		}
-		$channel_add_settings[ $level_id . '_channels' ] = $channel_ids;
-
-		$options['channel_add_settings'] = $channel_add_settings;
+		$channel_add_settings[ $level_id . '_channels' ] = $_REQUEST['pmpro_sla_channels_select'];
+		$options['channel_add_settings']                 = $channel_add_settings;
 	}
 	update_option( 'pmprosla_data', $options );
 }

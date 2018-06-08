@@ -103,7 +103,7 @@ function pmprosla_slack_add_to_channel_callback() {
 		<li>Set the PMPro Slack\'s setting page as the redirect url. Click `Add` and then `Save URLs`</li>
 		<li>Click `Add To Slack` below and then click `Authorize`</li>
 		<a href="https://slack.com/oauth/authorize?
-			scope=client
+			scope=admin,users:read,users:read.email
 			&client_id=' . esc_html( $options['client_id'] ) . '">
 			<img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png"
 			srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
@@ -154,11 +154,6 @@ function pmprosla_validate( $input ) {
 	return $options;
 }
 
-
-
-
-
-
 /**
  *  Adds options to add users to Slack channel after checkout
  *  for the level being edited
@@ -191,7 +186,6 @@ function pmprosla_membership_level_after_other_settings() {
 	<?php } else { ?>
 		<p>Slack webhook not yet set up. To send notifications when users check out for this level, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
 	<?php } ?>
-
 	<?php if ( ! empty( $options['oauth'] ) ) { ?>
 		<table class="form-table">
 			<tbody>
@@ -234,17 +228,17 @@ function pmprosla_membership_level_after_other_settings() {
 					if ( isset( $_REQUEST['edit'] ) ) {
 						$level = intval( $_REQUEST['edit'] );
 						echo '<select multiple="yes" name="pmpro_sla_channels_select[]" id="pmpro_sla_channels_select">';
-							global $pmprosla_channels_from_api;
-							if( [] === $pmprosla_channels_from_api ) {
-								pmprosla_fill_channel_info();
-							}
-							if( [] !== $pmprosla_channels_from_api ) {
-								foreach ( $pmprosla_channels_from_api as $channel_info ) {
-									echo '<option value="' . $channel_info['id'] . '"';
-									if ( is_array($options['channel_add_settings'][ $level . '_channels' ]) && in_array( $channel_info['id'], $options['channel_add_settings'][ $level . '_channels' ] ) ) {
-										echo ' selected=selected';
-									}
-									echo '>' . $channel_info['name_normalized'] . '</option>';
+						global $pmprosla_channels_from_api;
+						if ( [] === $pmprosla_channels_from_api ) {
+							pmprosla_fill_channel_info();
+						}
+						if ( [] !== $pmprosla_channels_from_api ) {
+							foreach ( $pmprosla_channels_from_api as $channel_info ) {
+								echo '<option value="' . esc_html( $channel_info['id'] ) . '"';
+								if ( is_array( $options['channel_add_settings'][ $level . '_channels' ] ) && in_array( $channel_info['id'], $options['channel_add_settings'][ $level . '_channels' ] ) ) {
+									echo ' selected=selected';
+								}
+								echo '>' . esc_html( $channel_info['name_normalized'] ) . '</option>';
 							}
 							echo '</select>';
 						}
@@ -280,7 +274,7 @@ function pmprosla_pmpro_save_membership_level( $level_id ) {
 	if ( ! empty( $options['webhook'] ) ) {
 		$levels = $options['levels_to_notify'];
 		if ( empty( $_REQUEST['pmprosla_checkbox_notify'] ) ) {
-			if ( in_array( $level_id, $levels ) ) {
+			if ( in_array( $level_id, $levels, true ) ) {
 				$levels = array_diff( $levels, array( $level_id ) );
 			}
 		} else {

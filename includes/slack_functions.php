@@ -104,7 +104,7 @@ function pmprosla_fill_channel_info() {
 		$pmprosla_channels_from_api = $response_arr['channels'];
 	} else {
 		$pmprosla_channels_from_api = NULL;
-		echo "Something went wrong: ".$response;
+		//echo "Something went wrong: ".$response;
 	}
 }
 
@@ -158,7 +158,7 @@ function pmprosla_add_user_to_channel($slack_user_id, $channel_id){
 	if($response_arr['error']=="already_in_channel"){
 		return true;
 	}
-	echo "Something went wrong: ".$response;
+	//echo "Something went wrong: ".$response;
 	return false;
 }
 
@@ -166,10 +166,11 @@ function pmprosla_add_user_to_channel($slack_user_id, $channel_id){
 function pmprosla_remove_user_from_channel($slack_user_id, $channel_id){
 	$response = file_get_contents('https://slack.com/api/channels.kick?channel='.$channel_id.'&user='.$slack_user_id.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
-	if($response_arr['ok']) {
+	$acceptable_errors = ['not_in_channel'];
+	if($response_arr['ok'] || in_array( $response_arr['error'], $acceptable_errors, true) ) {
 		return true;
 	}
-	echo "Something went wrong: ".$response;
+	//echo "Something went wrong: ".$response;
 	return false;
 }
 
@@ -191,7 +192,8 @@ function pmprosla_invite_user_to_workspace($user, $level=NULL){
 		.'&token='.pmprosla_get_oauth());
 	$response_arr = json_decode($response, true);
 
-	if($response_arr['ok']) {
+	$acceptable_errors = ['already_in_channel'];
+	if($response_arr['ok'] || in_array( $response_arr['error'], $acceptable_errors, true) ) {
 		return true;
 	}
 	echo "Something went wrong: ".$response;

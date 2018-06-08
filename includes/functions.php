@@ -16,7 +16,7 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 	$levels       = $options['levels_to_notify'];
 
 	// Only if this level is in the array.
-	if ( ! in_array( $level->id, $levels, true ) ) {
+	if ( ! in_array( intval( $level->id ), $levels, true ) ) {
 		return;
 	}
 

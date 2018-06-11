@@ -121,7 +121,7 @@ function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id =
 	if(!empty($old_level_ids)){
 		foreach($old_level_ids as $old_level_id){
 			if(!empty($options['channel_add_settings'][$old_level_id.'_enabled'])&&$options['channel_add_settings'][$old_level_id.'_enabled']==true){
-				foreach($options['channel_add_settings'][$old_level_id.'_channels'] as $channel_id){
+				foreach($options['channel_add_settings'][$old_level_id.'_channels_remove'] as $channel_id){
 					$old_level_channels[] = $channel_id;
 				}
 			}
@@ -133,7 +133,7 @@ function pmprosla_switch_slack_channels_by_level($slack_user_id, $new_level_id =
 	}
 
 	//remove all common channels between the two arrays
-	$channels_to_add = array_diff($new_level_channels, $old_level_channels);
+	$channels_to_add    = $new_level_channels;
 	$channels_to_remove = array_diff($old_level_channels, $new_level_channels);
 
 	//remove user from all channels still related to old level

@@ -138,6 +138,7 @@ function pmprosla_validate( $input ) {
 
 	if ( ! empty( $input['channel_add_settings'] ) ) {
 		// Should split channels up into another array here, and switch to channel_id.
+		var_dump($input['channel_add_settings']);
 		$options['channel_add_settings'] = $input['channel_add_settings'];
 	} else {
 		$options['channel_add_settings'] = [ [] ];
@@ -186,6 +187,8 @@ function pmprosla_membership_level_after_other_settings() {
 	<?php } else { ?>
 		<p>Slack webhook not yet set up. To send notifications when users check out for this level, click <a href="./options-general.php?page=pmprosla">here</a> and follow the instructions.</p>
 	<?php } ?>
+
+
 	<?php if ( ! empty( $options['oauth'] ) ) { ?>
 		<table class="form-table">
 			<tbody>
@@ -205,24 +208,24 @@ function pmprosla_membership_level_after_other_settings() {
 						}
 						?>
 						<input type="checkbox" name="pmprosla_checkbox" id="pmprosla_checkbox" value="pmprosla_checkbox"
-								onclick="if(jQuery('#pmprosla_checkbox').is(':checked')) { jQuery('#pmprosla_channel_input_row').show(); } else { jQuery('#pmprosla_channel_input_row').hide();}"
+								onclick="if(jQuery('#pmprosla_checkbox').is(':checked')) { jQuery('.pmprosla_channel_input_rows').show(); } else { jQuery('.pmprosla_channel_input_rows').hide();}"
 								<?php
 								if ( $pmprosla_enabled ) {
 									echo 'checked';
 								}
 								?>
 								/>
-						<label for="pmprosla_checkbox"><?php esc_attr_e( 'Add users to Slack channel on checkout.', 'paid-memberships-pro' ); ?></label>
+						<label for="pmprosla_checkbox"><?php esc_attr_e( 'Add/Remove users to/from Slack channel on checkout.', 'paid-memberships-pro' ); ?></label>
 					</td>
 				</tr>
-				<tr id="pmprosla_channel_input_row"
+				<tr class="pmprosla_channel_input_rows"
 				<?php
 				if ( ! $pmprosla_enabled ) {
 					echo 'hidden';
 				}
 				?>
 				>
-					<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php esc_attr_e( 'Channels:', 'paid-memberships-pro' ); ?></label></th>
+					<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php esc_attr_e( 'Add to Channels When Joining this Level:', 'paid-memberships-pro' ); ?></label></th>
 					<td>
 					<?php
 					if ( isset( $_REQUEST['edit'] ) ) {
@@ -244,9 +247,41 @@ function pmprosla_membership_level_after_other_settings() {
 						}
 					}
 					?>
+					</td>
+				</tr>
+				<tr class="pmprosla_channel_input_rows"
+				<?php
+				if ( ! $pmprosla_enabled ) {
+					echo 'hidden';
+				}
+				?>
+				>
+					<th scope="row" valign="top"><label for="pmprosla_channel_input"><?php esc_attr_e( 'Remove from Channels When Leaving this Level:', 'paid-memberships-pro' ); ?></label></th>
+					<td>
+					<?php
+					if ( isset( $_REQUEST['edit'] ) ) {
+						$level = intval( $_REQUEST['edit'] );
+						echo '<select multiple="yes" name="pmpro_sla_channels_remove_select[]" id="pmpro_sla_channels_remove_select">';
+						global $pmprosla_channels_from_api;
+						if ( [] === $pmprosla_channels_from_api ) {
+							pmprosla_fill_channel_info();
+						}
+						if ( [] !== $pmprosla_channels_from_api ) {
+							foreach ( $pmprosla_channels_from_api as $channel_info ) {
+								echo '<option value="' . esc_html( $channel_info['id'] ) . '"';
+								if ( is_array( $options['channel_add_settings'][ $level . '_channels_remove' ] ) && in_array( $channel_info['id'], $options['channel_add_settings'][ $level . '_channels_remove' ] ) ) {
+									echo ' selected=selected';
+								}
+								echo '>' . esc_html( $channel_info['name_normalized'] ) . '</option>';
+							}
+							echo '</select>';
+						}
+					}
+					?>
 					<script>
 						jQuery( document ).ready(function() {
 							jQuery("#pmpro_sla_channels_select").selectWoo();
+							jQuery("#pmpro_sla_channels_remove_select").selectWoo();
 						});
 					</script>
 					</td>
@@ -293,6 +328,7 @@ function pmprosla_pmpro_save_membership_level( $level_id ) {
 			$channel_add_settings[ $level_id . '_enabled' ] = false;
 		}
 		$channel_add_settings[ $level_id . '_channels' ] = $_REQUEST['pmpro_sla_channels_select'];
+		$channel_add_settings[ $level_id . '_channels_remove' ] = $_REQUEST['pmpro_sla_channels_remove_select'];
 		$options['channel_add_settings']                 = $channel_add_settings;
 	}
 	update_option( 'pmprosla_data', $options );

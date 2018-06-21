@@ -5,11 +5,11 @@ Requires at least: 3.5
 Tested up to: 4.2.4
 Stable tag: 1.0
 
-Slack notifications for the Paid Memberships Pro plugin
+Slack integration for the Paid Memberships Pro plugin
 
 == Description ==
 
-Set your Slack webhook URL and choose which levels to send notifications to Slack for. Then when users checkout on your site, notifications will show up in Slack.
+Send notifications to a Slack channel when a user checks out on your site, and automatically add users to channels when they checkout for a level.
 
 == Installation ==
 
@@ -27,11 +27,6 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 = I need help installing, configuring, or customizing the plugin. =
 
 Please visit our premium support site at http://www.paidmembershipspro.com for more documentation and our support forums.
-
-== Screenshots ==
-
-1. General settings for all members/subscribers list, opt-in rules, and unsubscribe rules.
-2. Membership-level specific list subscription settings.
 
 == Changelog ==
 = 1.0 =

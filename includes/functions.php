@@ -27,19 +27,27 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 				'text'        => 'New checkout: ' . $current_user->user_email,
 				'username'    => 'PMProBot',
 				'icon_emoji'  => ':credit_card:',
-				'attachments' => array(
-					'fields' => array(
-						'color' => '#8FB052',
-						'title' => $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')', // Note: Can't use pmpro_formatPrice here because Slack doesn't like html entities.
+				'blocks'      => array(
+					array(
+						'type' => 'section',
+						'text' => array(
+							'type' => 'mrkdwn',
+							'text' => '*New checkout: ' . $current_user->user_email . '*',
+						),
+					),
+					array(
+						'type' => 'section',
+						'text' => array(
+							'type' => 'mrkdwn',
+							'text' => '>' . $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')',
+						),
 					),
 				),
 			);
-
 			$output   = 'payload=' . wp_json_encode( $payload );
 			$response = wp_remote_post( $webhook_url, array(
 				'body' => $output,
 			) );
-
 			if ( is_wp_error( $response ) ) {
 				$error_message = $response->get_error_message();
 				echo 'Something went wrong: $error_message';

@@ -19,7 +19,6 @@ require_once PMPROSLA_DIR . '/includes/admin.php';
 require_once PMPROSLA_DIR . '/includes/common.php';
 require_once PMPROSLA_DIR . '/includes/settings.php';
 require_once PMPROSLA_DIR . '/includes/functions.php';
-require_once PMPROSLA_DIR . '/includes/slack_functions.php';
 
 add_action( 'admin_enqueue_scripts', 'pmpro_sla_admin_scripts' );
 /**

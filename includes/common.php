@@ -17,10 +17,6 @@ function pmprosla_get_options() {
 		$options = array(
 			'webhook'              => false,
 			'levels_to_notify'     => false,
-			'oauth'                => false,
-			'channel_add_settings' => [],
-			'client_id'            => false,
-			'client_secret'        => false,
 		);
 	}
 	return $options;

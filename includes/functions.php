@@ -64,31 +64,3 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 		do_action( 'pmprosla_sent', $response );
 	}
 }
-
-add_action( 'pmpro_before_change_membership_level', 'pmprosla_pmpro_before_change_membership_level', 10, 3 );
-/**
- * Main Slack Integration Function
- *
- * @param string $level_id The ID of the level.
- * @param string $user_id The ID of the user.
- * @param string $old_levels The old level IDs for the user.
- *
- * @since 1.0
- */
-function pmprosla_pmpro_before_change_membership_level( $level_id, $user_id, $old_levels ) {
-	$current_user = get_userdata( $user_id );
-	$email        = $current_user->user_email;
-	$options      = pmprosla_get_options();
-
-	if ( ! empty( $options['oauth'] ) ) {
-		if ( pmprosla_email_in_slack_workspace( $email ) ) {
-			$old_level_ids = [];
-			foreach ( $old_levels as $level ) {
-				$old_level_ids[] = $level->ID;
-			}
-			pmprosla_switch_slack_channels_by_level( pmprosla_get_slack_user_id( $email ), $level_id, $old_level_ids );
-		} else {
-			pmprosla_invite_user_to_workspace( $current_user, $level_id );
-		}
-	}
-}

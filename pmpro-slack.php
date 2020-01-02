@@ -2,11 +2,10 @@
 /**
  * Plugin Name: Paid Memberships Pro - Slack Integration
  * Plugin URI: https://www.paidmembershipspro.com/add-ons/pmpro-slack-integration/
- * Description: Configure Slack integration for the Paid Memberships Pro plugin.
- * Author: strangerstudios, nikv, dlparker1005
+ * Description: Configure Slack notifications for the Paid Memberships Pro plugin.
+ * Author: Paid Memberships Pro
  * Author URI: https://www.paidmembershipspro.com
- * Version: 1.0
- * Plugin URI:
+ * Version: 1.1
  * License: GNU GPLv2+
  * Text Domain: pmpro-slack
  *

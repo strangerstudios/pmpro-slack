@@ -1,15 +1,15 @@
 === Paid Memberships Pro - Slack Integration ===
-Contributors: strangerstudios
+Contributors: strangerstudios, nikv, dlparker1005
 Tags: paid memberships pro, pmpro, slack, notifications
 Requires at least: 3.5
-Tested up to: 4.2.4
-Stable tag: 1.0
+Tested up to: 5.3
+Stable tag: 1.1
 
 Slack integration for the Paid Memberships Pro plugin
 
 == Description ==
 
-Send notifications to a Slack channel when a user checks out on your site, and automatically add users to channels when they checkout for a level.
+Send notifications to a Slack channel when a user checks out on your site.
 
 == Installation ==
 
@@ -29,5 +29,10 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 Please visit our premium support site at http://www.paidmembershipspro.com for more documentation and our support forums.
 
 == Changelog ==
+= 1.1 - 2020-01-02 =
+* BUG FIX: Fixed issue where purchase details would not be sent in Slack notification.
+* ENHANCEMENT: Changed level select field to use SelectWoo.
+* REFACTOR: Moved code into separated files.
+
 = 1.0 =
 * Initial version.

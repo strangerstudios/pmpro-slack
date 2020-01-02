@@ -19,16 +19,14 @@ require_once PMPROSLA_DIR . '/includes/admin.php';
 require_once PMPROSLA_DIR . '/includes/common.php';
 require_once PMPROSLA_DIR . '/includes/settings.php';
 require_once PMPROSLA_DIR . '/includes/functions.php';
-require_once PMPROSLA_DIR . '/includes/slack_functions.php';
 
 add_action( 'admin_enqueue_scripts', 'pmpro_sla_admin_scripts' );
 /**
  * Enqueues selectWoo
  */
 function pmpro_sla_admin_scripts() {
-	$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-	wp_register_script( 'selectWoo', '/wp-content/plugins/pmpro-slack/js/selectWoo.full' . $suffix . '.js', array( 'jquery' ), '1.0.4' );
+	wp_register_script( 'selectWoo', '/wp-content/plugins/pmpro-slack/js/selectWoo.full.js', array( 'jquery' ), '1.0.4' );
 	wp_enqueue_script( 'selectWoo' );
-	wp_register_style( 'selectWooCSS', '/wp-content/plugins/pmpro-slack/css/selectWoo' . $suffix . '.css' );
+	wp_register_style( 'selectWooCSS', '/wp-content/plugins/pmpro-slack/css/selectWoo.css' );
 	wp_enqueue_style( 'selectWooCSS' );
 }

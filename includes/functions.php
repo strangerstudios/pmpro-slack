@@ -27,19 +27,27 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 				'text'        => 'New checkout: ' . $current_user->user_email,
 				'username'    => 'PMProBot',
 				'icon_emoji'  => ':credit_card:',
-				'attachments' => array(
-					'fields' => array(
-						'color' => '#8FB052',
-						'title' => $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')', // Note: Can't use pmpro_formatPrice here because Slack doesn't like html entities.
+				'blocks'      => array(
+					array(
+						'type' => 'section',
+						'text' => array(
+							'type' => 'mrkdwn',
+							'text' => '*New checkout: ' . $current_user->user_email . '*',
+						),
+					),
+					array(
+						'type' => 'section',
+						'text' => array(
+							'type' => 'mrkdwn',
+							'text' => '>' . $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')',
+						),
 					),
 				),
 			);
-
 			$output   = 'payload=' . wp_json_encode( $payload );
 			$response = wp_remote_post( $webhook_url, array(
 				'body' => $output,
 			) );
-
 			if ( is_wp_error( $response ) ) {
 				$error_message = $response->get_error_message();
 				echo 'Something went wrong: $error_message';
@@ -54,33 +62,5 @@ function pmprosla_pmpro_after_checkout( $user_id ) {
 		 * @since 0.3.0
 		 */
 		do_action( 'pmprosla_sent', $response );
-	}
-}
-
-add_action( 'pmpro_before_change_membership_level', 'pmprosla_pmpro_before_change_membership_level', 10, 3 );
-/**
- * Main Slack Integration Function
- *
- * @param string $level_id The ID of the level.
- * @param string $user_id The ID of the user.
- * @param string $old_levels The old level IDs for the user.
- *
- * @since 1.0
- */
-function pmprosla_pmpro_before_change_membership_level( $level_id, $user_id, $old_levels ) {
-	$current_user = get_userdata( $user_id );
-	$email        = $current_user->user_email;
-	$options      = pmprosla_get_options();
-
-	if ( ! empty( $options['oauth'] ) ) {
-		if ( pmprosla_email_in_slack_workspace( $email ) ) {
-			$old_level_ids = [];
-			foreach ( $old_levels as $level ) {
-				$old_level_ids[] = $level->ID;
-			}
-			pmprosla_switch_slack_channels_by_level( pmprosla_get_slack_user_id( $email ), $level_id, $old_level_ids );
-		} else {
-			pmprosla_invite_user_to_workspace( $current_user, $level_id );
-		}
 	}
 }

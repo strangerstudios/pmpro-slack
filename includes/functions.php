@@ -26,36 +26,34 @@ function pmprosla_pmpro_after_checkout( $user_id, $order ) {
 
 	// Check that webhook exists in the settings page.
 	if ( '' !== $webhook_url ) {
-		if ( is_user_logged_in() ) {
-			$payload = array(
-				'text'        => 'New checkout: ' . $current_user->user_email,
-				'username'    => 'PMProBot',
-				'icon_emoji'  => ':credit_card:',
-				'blocks'      => array(
-					array(
-						'type' => 'section',
-						'text' => array(
-							'type' => 'mrkdwn',
-							'text' => '*New checkout: ' . $current_user->user_email . '*',
-						),
-					),
-					array(
-						'type' => 'section',
-						'text' => array(
-							'type' => 'mrkdwn',
-							'text' => '>' . $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')',
-						),
+		$payload = array(
+			'text'        => 'New checkout: ' . $current_user->user_email,
+			'username'    => 'PMProBot',
+			'icon_emoji'  => ':credit_card:',
+			'blocks'      => array(
+				array(
+					'type' => 'section',
+					'text' => array(
+						'type' => 'mrkdwn',
+						'text' => '*New checkout: ' . $current_user->user_email . '*',
 					),
 				),
-			);
-			$output   = 'payload=' . wp_json_encode( $payload );
-			$response = wp_remote_post( $webhook_url, array(
-				'body' => $output,
-			) );
-			if ( is_wp_error( $response ) ) {
-				$error_message = $response->get_error_message();
-				echo 'Something went wrong: $error_message';
-			}
+				array(
+					'type' => 'section',
+					'text' => array(
+						'type' => 'mrkdwn',
+						'text' => '>' . $current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')',
+					),
+				),
+			),
+		);
+		$output   = 'payload=' . wp_json_encode( $payload );
+		$response = wp_remote_post( $webhook_url, array(
+			'body' => $output,
+		) );
+		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			echo 'Something went wrong: $error_message';
 		}
 
 		/**

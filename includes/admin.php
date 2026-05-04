@@ -58,8 +58,8 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'pmprosla_plug
 function pmprosla_plugin_row_meta( $links, $file ) {
 	if ( strpos( $file, 'pmpro-slack.php' ) !== false ) {
 		$new_links = array(
-			'<a href="' . esc_url( 'https://www.paidmembershipspro.com/add-ons/pmpro-slack-integration/' ) . '" title="' . esc_attr( __( 'View Documentation', 'pmpro' ) ) . '">' . __( 'Docs', 'pmpro' ) . '</a>',
-			'<a href="' . esc_url( 'https://paidmembershipspro.com/support/' ) . '" title="' . esc_attr( __( 'Visit Customer Support Forum', 'pmpro' ) ) . '">' . __( 'Support', 'pmpro' ) . '</a>',
+			'<a href="' . esc_url( 'https://www.paidmembershipspro.com/add-ons/pmpro-slack-integration/' ) . '" title="' . esc_attr__( 'View Documentation', 'pmpro-slack' ) . '">' . esc_html__( 'Docs', 'pmpro-slack' ) . '</a>',
+			'<a href="' . esc_url( 'https://paidmembershipspro.com/support/' ) . '" title="' . esc_attr__( 'Visit Customer Support Forum', 'pmpro-slack' ) . '">' . esc_html__( 'Support', 'pmpro-slack' ) . '</a>',
 		);
 		$links = array_merge( $links, $new_links );
 	}

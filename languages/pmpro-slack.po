@@ -1,0 +1,102 @@
+# Copyright (C) 2026 Paid Memberships Pro
+# This file is distributed under the GNU GPLv2+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Paid Memberships Pro - Slack Integration 1.1.2\n"
+"Report-Msgid-Bugs-To: info@paidmembershipspro.com\n"
+"Last-Translator: Paid Memberships Pro <info@paidmembershipspro.com>\n"
+"Language-Team: Paid Memberships Pro <info@paidmembershipspro.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-04T17:48:16+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: pmpro-slack\n"
+
+#. Plugin Name of the plugin
+#: pmpro-slack.php
+msgid "Paid Memberships Pro - Slack Integration"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: pmpro-slack.php
+msgid "https://www.paidmembershipspro.com/add-ons/pmpro-slack-integration/"
+msgstr ""
+
+#. Description of the plugin
+#: pmpro-slack.php
+msgid "Configure Slack notifications for the Paid Memberships Pro plugin."
+msgstr ""
+
+#. Author of the plugin
+#: pmpro-slack.php
+msgid "Paid Memberships Pro"
+msgstr ""
+
+#. Author URI of the plugin
+#: pmpro-slack.php
+msgid "https://www.paidmembershipspro.com"
+msgstr ""
+
+#: includes/admin.php:28
+#, php-format
+msgid "Thank you for activating. <a href=\"%s\">Visit the settings page</a> to get started with the Slack Integration Add On."
+msgstr ""
+
+#: includes/admin.php:45
+msgid "Settings"
+msgstr ""
+
+#: includes/admin.php:61
+msgid "View Documentation"
+msgstr ""
+
+#: includes/admin.php:61
+msgid "Docs"
+msgstr ""
+
+#: includes/admin.php:62
+msgid "Visit Customer Support Forum"
+msgstr ""
+
+#: includes/admin.php:62
+msgid "Support"
+msgstr ""
+
+#. translators: %s: error message returned from the Slack webhook request.
+#: includes/functions.php:58
+#, php-format
+msgid "Something went wrong: %s"
+msgstr ""
+
+#: includes/settings.php:11
+#: includes/settings.php:12
+msgid "PMPro Slack"
+msgstr ""
+
+#: includes/settings.php:27
+msgid "Paid Memberships Pro - Slack Integration Add On"
+msgstr ""
+
+#: includes/settings.php:44
+msgid "Slack Checkout Notifications"
+msgstr ""
+
+#. translators: %s: link to Slack's incoming-webhook creation page.
+#: includes/settings.php:59
+#, php-format
+msgid "Go to %s and create a new webhook."
+msgstr ""
+
+#: includes/settings.php:63
+msgid "Enter created webhook URL here:"
+msgstr ""
+
+#: includes/settings.php:64
+msgid "Choose levels to send notifications for:"
+msgstr ""
+
+#: includes/settings.php:74
+msgid "Click `Save Changes`."
+msgstr ""

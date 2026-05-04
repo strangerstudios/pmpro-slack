@@ -24,7 +24,7 @@ function pmprosla_integration_options_page() {
 	?>
 	<div class="wrap">
 		<?php require_once( PMPRO_DIR . '/adminpages/admin_header.php' ); ?>
-		<h1><?php esc_attr_e( 'Paid Memberships Pro - Slack Integration Add On', 'pmpro-slack' ); ?></h1>
+		<h1><?php esc_html_e( 'Paid Memberships Pro - Slack Integration Add On', 'pmpro-slack' ); ?></h1>
 		<form action="options.php" method="POST">
 			<?php settings_fields( 'pmpro-slack-group' ); ?>
 			<?php do_settings_sections( 'pmpro-slack' ); ?>
@@ -41,7 +41,7 @@ add_action( 'admin_init', 'pmprosla_admin_init' );
  */
 function pmprosla_admin_init() {
 	register_setting( 'pmpro-slack-group', 'pmprosla_data', 'pmprosla_validate' );
-	add_settings_section( 'pmpro-slack-notifications', 'Slack Checkout Notifications', 'pmprosla_notications_callback', 'pmpro-slack' );
+	add_settings_section( 'pmpro-slack-notifications', __( 'Slack Checkout Notifications', 'pmpro-slack' ), 'pmprosla_notications_callback', 'pmpro-slack' );
 }
 
 
@@ -49,23 +49,30 @@ function pmprosla_admin_init() {
  * Sets up settings for Slack notifications on checkout
  */
 function pmprosla_notications_callback() {
-	$options = pmprosla_get_options();
-	$levels = pmpro_getAllLevels( true, true );
-	echo '<ol>
-		<li>Go To <a target="_blank" href="https://slack.com/services/new/incoming-webhook">https://slack.com/services/new/incoming-webhook</a> and create a new webhook</li>
-		<li>Enter created webhook URL here: <input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . esc_url( $options['webhook'] ) . '" /></li>
-		<li>Choose levels to send notifications for:<br/>
-		<select multiple="yes" name="pmprosla_data[levels_to_notify][]"" style="width:500px" id="pmpro_sla_levels_select">';
+	$options     = pmprosla_get_options();
+	$levels      = pmpro_getAllLevels( true, true );
+	$webhook_url = 'https://slack.com/services/new/incoming-webhook';
+	echo '<ol>';
+	echo '<li>';
+	printf(
+		/* translators: %s: link to Slack's incoming-webhook creation page. */
+		esc_html__( 'Go to %s and create a new webhook.', 'pmpro-slack' ),
+		'<a target="_blank" href="' . esc_url( $webhook_url ) . '">' . esc_html( $webhook_url ) . '</a>'
+	);
+	echo '</li>';
+	echo '<li>' . esc_html__( 'Enter created webhook URL here:', 'pmpro-slack' ) . ' <input type="url" id="webhook" name="pmprosla_data[webhook]" value="' . esc_url( $options['webhook'] ) . '" /></li>';
+	echo '<li>' . esc_html__( 'Choose levels to send notifications for:', 'pmpro-slack' ) . '<br/>';
+	echo '<select multiple="yes" name="pmprosla_data[levels_to_notify][]" style="width:500px" id="pmpro_sla_levels_select">';
 	foreach ( $levels as $level ) {
-		echo '<option value="' . $level->id . '" ';
+		echo '<option value="' . esc_attr( $level->id ) . '" ';
 		if ( ! empty( $options['levels_to_notify'] ) && in_array( $level->id, $options['levels_to_notify'] ) ) {
 			echo 'selected="selected"';
 		}
-		echo '>' . $level->name . '</option>';
+		echo '>' . esc_html( $level->name ) . '</option>';
 	}
-		echo '</select></li>
-		<li>Click `Save Changes`</li>
-		</ol>';
+	echo '</select></li>';
+	echo '<li>' . esc_html__( 'Click `Save Changes`.', 'pmpro-slack' ) . '</li>';
+	echo '</ol>';
 		?>
 		<script>
 			jQuery( document ).ready(function() {

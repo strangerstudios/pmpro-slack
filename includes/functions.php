@@ -53,7 +53,11 @@ function pmprosla_pmpro_after_checkout( $user_id, $order ) {
 		) );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo 'Something went wrong: ' . esc_html( $error_message );
+			printf(
+				/* translators: %s: error message returned from the Slack webhook request. */
+				esc_html__( 'Something went wrong: %s', 'pmpro-slack' ),
+				esc_html( $error_message )
+			);
 		}
 
 		/**

@@ -5,6 +5,10 @@
  * @package pmpro-sitewide-sale/includes
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 register_activation_hook( __FILE__, 'pmprosla_admin_notice_activation_hook' );
 /**
  * Runs only when the plugin is activated.
@@ -25,7 +29,7 @@ function pmprosla_admin_notice() {
 	// Check transient, if available display notice.
 	if ( get_transient( 'pmprosla-admin-notice' ) ) { ?>
 		<div class="updated notice is-dismissible">
-			<p><?php printf( __( 'Thank you for activating. <a href="%s">Visit the settings page</a> to get started with the Slack Integration Add On.', 'pmpro-slack' ), get_admin_url( null, 'options-general.php?page=pmprosla' ) ); ?></p>
+			<p><?php echo wp_kses_post( sprintf( __( 'Thank you for activating. <a href="%s">Visit the settings page</a> to get started with the Slack Integration Add On.', 'pmpro-slack' ), esc_url( get_admin_url( null, 'options-general.php?page=pmprosla' ) ) ) ); ?></p>
 		</div>
 		<?php
 		// Delete transient, only display this notice once.

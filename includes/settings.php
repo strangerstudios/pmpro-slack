@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 add_action( 'admin_menu', 'pmprosla_integration_menu' );
 /**
  * Add the menu

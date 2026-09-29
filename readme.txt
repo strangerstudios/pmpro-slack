@@ -2,8 +2,8 @@
 Contributors: strangerstudios, nikv, dlparker1005
 Tags: paid memberships pro, pmpro, slack, notifications
 Requires at least: 5.6
-Tested up to: 6.9
-Stable tag: 1.1.2
+Tested up to: 7.1
+Stable tag: 1.1.3
 
 Slack integration for the Paid Memberships Pro plugin
 
@@ -29,6 +29,9 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 Please visit our premium support site at http://www.paidmembershipspro.com for more documentation and our support forums.
 
 == Changelog ==
+= 1.1.3 - 2026-09-29 =
+* SECURITY: Improved sanitization and escaping throughout the plugin to resolve Plugin Check security findings. #14 (@dparker1005)
+
 = 1.1.2 - 2026-05-04 =
 * ENHANCEMENT: Improved translation support across the settings page and plugin row links by wrapping strings in proper i18n functions and correcting the text domain. #13 (@dparker1005)
 * BUG FIX: Slack notifications now send for offsite gateways (Stripe Checkout, PayPal Standard, 2Checkout) where the user is not logged in when `pmpro_after_checkout` fires asynchronously from a webhook or IPN. #12 (@dparker1005)

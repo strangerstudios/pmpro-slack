@@ -5,7 +5,7 @@
  * Description: Configure Slack notifications for the Paid Memberships Pro plugin.
  * Author: Paid Memberships Pro
  * Author URI: https://www.paidmembershipspro.com
- * Version: 1.1.2
+ * Version: 1.1.3
  * License: GNU GPLv2+
  * Text Domain: pmpro-slack
  *

@@ -12,6 +12,10 @@
  * @package pmpro-slack
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 define( 'PMPROSLA_DIR', dirname( __FILE__ ) );
 
 require_once PMPROSLA_DIR . '/includes/admin.php';

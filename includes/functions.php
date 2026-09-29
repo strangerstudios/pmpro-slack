@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2 );
 /**
  * Sends Slack notification on checkout.

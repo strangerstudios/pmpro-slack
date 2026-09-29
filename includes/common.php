@@ -5,6 +5,10 @@
  * @package pmpro-slack/includes
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Get the PMPro slack
  **/

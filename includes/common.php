@@ -23,6 +23,11 @@ function pmprosla_get_options() {
 			'levels_to_notify'     => false,
 		);
 	}
+
+	// Sites saved before triggers were added only sent checkout notifications.
+	if ( ! isset( $options['triggers'] ) ) {
+		$options['triggers'] = array( 'checkout' );
+	}
 	return $options;
 }
 

@@ -45,7 +45,7 @@ add_action( 'admin_init', 'pmprosla_admin_init' );
  */
 function pmprosla_admin_init() {
 	register_setting( 'pmpro-slack-group', 'pmprosla_data', 'pmprosla_validate' );
-	add_settings_section( 'pmpro-slack-notifications', __( 'Slack Checkout Notifications', 'pmpro-slack' ), 'pmprosla_notications_callback', 'pmpro-slack' );
+	add_settings_section( 'pmpro-slack-notifications', __( 'Slack Notifications', 'pmpro-slack' ), 'pmprosla_notications_callback', 'pmpro-slack' );
 }
 
 
@@ -75,6 +75,16 @@ function pmprosla_notications_callback() {
 		echo '>' . esc_html( $level->name ) . '</option>';
 	}
 	echo '</select></li>';
+	echo '<li>' . esc_html__( 'Choose events to send notifications for:', 'pmpro-slack' ) . '<br/>';
+	$triggers = array(
+		'checkout'     => __( 'Checkout', 'pmpro-slack' ),
+		'expiration'   => __( 'Membership expiration', 'pmpro-slack' ),
+		'cancellation' => __( 'Membership cancellation', 'pmpro-slack' ),
+	);
+	foreach ( $triggers as $trigger => $label ) {
+		echo '<label><input type="checkbox" name="pmprosla_data[triggers][]" value="' . esc_attr( $trigger ) . '" ' . checked( in_array( $trigger, (array) $options['triggers'], true ), true, false ) . ' /> ' . esc_html( $label ) . '</label><br/>';
+	}
+	echo '</li>';
 	echo '<li>' . esc_html__( 'Click `Save Changes`.', 'pmpro-slack' ) . '</li>';
 	echo '</ol>';
 		?>
@@ -109,6 +119,12 @@ function pmprosla_validate( $input ) {
 		}
 	} else {
 		$options['levels_to_notify'] = [];
+	}
+
+	if ( ! empty( $input['triggers'] ) && is_array( $input['triggers'] ) ) {
+		$options['triggers'] = array_values( array_intersect( array( 'checkout', 'expiration', 'cancellation' ), $input['triggers'] ) );
+	} else {
+		$options['triggers'] = array();
 	}
 
 	return $options;

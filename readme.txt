@@ -3,7 +3,7 @@ Contributors: strangerstudios, nikv, dlparker1005
 Tags: paid memberships pro, pmpro, slack, notifications
 Requires at least: 5.6
 Tested up to: 7.1
-Stable tag: 1.1.3
+Stable tag: 1.2
 
 Slack integration for the Paid Memberships Pro plugin
 
@@ -29,6 +29,9 @@ Please post it in the issues section of GitHub and we'll fix it as soon as we ca
 Please visit our premium support site at http://www.paidmembershipspro.com for more documentation and our support forums.
 
 == Changelog ==
+= 1.2 - 2026-11-19 =
+* FEATURE: Added settings to send Slack notifications when a membership expires or is cancelled, alongside the existing checkout notification. #15 (@dparker1005)
+
 = 1.1.3 - 2026-09-29 =
 * SECURITY: Improved sanitization and escaping throughout the plugin to resolve Plugin Check security findings. #14 (@dparker1005)
 

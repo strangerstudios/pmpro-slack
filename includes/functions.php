@@ -15,6 +15,9 @@ add_action( 'pmpro_after_checkout', 'pmprosla_pmpro_after_checkout', 10, 2 );
 function pmprosla_pmpro_after_checkout( $user_id, $order ) {
 	$level        = pmpro_getSpecificMembershipLevelForUser( $user_id, $order->membership_id );
 	$current_user = get_userdata( $user_id );
+	if ( empty( $level ) ) {
+		return;
+	}
 
 	if ( ! pmprosla_should_notify( 'checkout', $level->id ) ) {
 		return;
@@ -118,6 +121,7 @@ function pmprosla_should_notify( $trigger, $level_id ) {
  */
 function pmprosla_send_message( $title, $details ) {
 	$options = pmprosla_get_options();
+
 	$payload = array(
 		'text'        => $title,
 		'username'    => 'PMProBot',

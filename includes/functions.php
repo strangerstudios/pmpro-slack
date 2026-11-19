@@ -121,7 +121,6 @@ function pmprosla_should_notify( $trigger, $level_id ) {
  */
 function pmprosla_send_message( $title, $details ) {
 	$options = pmprosla_get_options();
-
 	$payload = array(
 		'text'        => $title,
 		'username'    => 'PMProBot',

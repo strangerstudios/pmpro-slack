@@ -9,7 +9,7 @@ Slack integration for the Paid Memberships Pro plugin
 
 == Description ==
 
-Send notifications to a Slack channel when a user checks out on your site.
+Send notifications to a Slack channel when a user checks out, when a membership expires, or when a membership is cancelled on your site.
 
 == Installation ==
 

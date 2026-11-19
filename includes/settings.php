@@ -84,6 +84,7 @@ function pmprosla_notications_callback() {
 	foreach ( $triggers as $trigger => $label ) {
 		echo '<label><input type="checkbox" name="pmprosla_data[triggers][]" value="' . esc_attr( $trigger ) . '" ' . checked( in_array( $trigger, (array) $options['triggers'], true ), true, false ) . ' /> ' . esc_html( $label ) . '</label><br/>';
 	}
+	echo '<p class="description">' . esc_html__( 'Cancellation notifications are sent when a membership ends right away. When a cancelled membership stays active until its next payment date, an expiration notification is sent when it ends instead.', 'pmpro-slack' ) . '</p>';
 	echo '</li>';
 	echo '<li>' . esc_html__( 'Click `Save Changes`.', 'pmpro-slack' ) . '</li>';
 	echo '</ol>';

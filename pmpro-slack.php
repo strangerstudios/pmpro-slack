@@ -27,9 +27,14 @@ add_action( 'admin_enqueue_scripts', 'pmpro_sla_admin_scripts' );
 /**
  * Enqueues selectWoo
  */
-function pmpro_sla_admin_scripts() {
-	wp_register_script( 'selectWoo', '/wp-content/plugins/pmpro-slack/js/selectWoo.full.js', array( 'jquery' ), '1.0.4' );
+function pmpro_sla_admin_scripts( $hook ) {
+	// Only load on the Slack settings page.
+	if ( 'settings_page_pmprosla' !== $hook ) {
+		return;
+	}
+
+	wp_register_script( 'selectWoo', plugins_url( 'js/selectWoo.full.js', __FILE__ ), array( 'jquery' ), '1.0.4' );
 	wp_enqueue_script( 'selectWoo' );
-	wp_register_style( 'selectWooCSS', '/wp-content/plugins/pmpro-slack/css/selectWoo.css' );
+	wp_register_style( 'selectWooCSS', plugins_url( 'css/selectWoo.css', __FILE__ ) );
 	wp_enqueue_style( 'selectWooCSS' );
 }

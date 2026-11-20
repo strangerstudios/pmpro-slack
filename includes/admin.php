@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-register_activation_hook( __FILE__, 'pmprosla_admin_notice_activation_hook' );
+register_activation_hook( PMPROSLA_DIR . '/pmpro-slack.php', 'pmprosla_admin_notice_activation_hook' );
 /**
  * Runs only when the plugin is activated.
  *
@@ -44,6 +44,7 @@ add_action( 'admin_notices', 'pmprosla_admin_notice' );
  * @param array $links Array of links to be shown in plugin action links.
  */
 function pmprosla_plugin_action_links( $links ) {
+	$new_links = array();
 	if ( current_user_can( 'manage_options' ) ) {
 		$new_links = array(
 			'<a href="' . get_admin_url( null, 'options-general.php?page=pmprosla' ) . '">' . __( 'Settings', 'pmpro-slack' ) . '</a>',
@@ -51,7 +52,7 @@ function pmprosla_plugin_action_links( $links ) {
 	}
 	return array_merge( $new_links, $links );
 }
-add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'pmprosla_plugin_action_links' );
+add_filter( 'plugin_action_links_' . plugin_basename( PMPROSLA_DIR . '/pmpro-slack.php' ), 'pmprosla_plugin_action_links' );
 
 /**
  * Function to add links to the plugin row meta

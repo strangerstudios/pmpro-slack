@@ -147,12 +147,8 @@ function pmprosla_send_message( $title, $details ) {
 		'body' => $output,
 	) );
 	if ( is_wp_error( $response ) ) {
-		$error_message = $response->get_error_message();
-		printf(
-			/* translators: %s: error message returned from the Slack webhook request. */
-			esc_html__( 'Something went wrong: %s', 'pmpro-slack' ),
-			esc_html( $error_message )
-		);
+		// Log the error instead of printing it into the request that triggered the notification.
+		error_log( 'PMPro Slack: ' . $response->get_error_message() );
 	}
 
 	/**

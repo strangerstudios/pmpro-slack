@@ -25,7 +25,7 @@ function pmprosla_pmpro_after_checkout( $user_id, $order ) {
 
 	pmprosla_send_message(
 		'New checkout: ' . $current_user->user_email,
-		$current_user->display_name . ' has checked out for ' . $level->name . ' ($' . $level->initial_payment . ')'
+		$current_user->display_name . ' has checked out for ' . $level->name . ' (' . html_entity_decode( pmpro_formatPrice( $level->initial_payment ), ENT_QUOTES, 'UTF-8' ) . ')'
 	);
 }
 
